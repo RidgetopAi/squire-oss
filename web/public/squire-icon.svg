@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Dark earthy background gradient -->
+    <radialGradient id="bg" cx="50%" cy="42%" r="58%">
+      <stop offset="0%" stop-color="#2a2725"/>
+      <stop offset="100%" stop-color="#1a1816"/>
+    </radialGradient>
+    
+    <!-- Warm gold-to-burgundy gradient for the S -->
+    <linearGradient id="letterGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d4a843"/>
+      <stop offset="50%" stop-color="#c4694a"/>
+      <stop offset="100%" stop-color="#8c3344"/>
+    </linearGradient>
+    
+    <!-- Subtle warm ambient glow -->
+    <radialGradient id="innerGlow" cx="50%" cy="46%" r="38%">
+      <stop offset="0%" stop-color="#c4694a" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#c4694a" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Warm glow behind the S -->
+    <filter id="letterGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+  
+  <!-- Inner ambient glow -->
+  <rect width="512" height="512" rx="96" ry="96" fill="url(#innerGlow)"/>
+  
+  <!-- Thin inset border -->
+  <rect x="18" y="18" width="476" height="476" rx="82" ry="82" 
+        fill="none" stroke="#c4694a" stroke-width="1.2" stroke-opacity="0.2"/>
+  
+  <!-- Corner diamond ornaments -->
+  <g opacity="0.3">
+    <rect x="66" y="66" width="10" height="10" rx="1" fill="#d4a843" transform="rotate(45, 71, 71)"/>
+    <rect x="436" y="66" width="10" height="10" rx="1" fill="#d4a843" transform="rotate(45, 441, 71)"/>
+    <rect x="66" y="436" width="10" height="10" rx="1" fill="#d4a843" transform="rotate(45, 71, 441)"/>
+    <rect x="436" y="436" width="10" height="10" rx="1" fill="#d4a843" transform="rotate(45, 441, 441)"/>
+  </g>
+  
+  <!-- The Old World 'S' — calligraphic blackletter-inspired -->
+  <g filter="url(#letterGlow)" transform="translate(256, 256)">
+    <!-- Main S stroke — thick calligraphic form -->
+    <path d="
+      M 52,-125
+      C 40,-135  15,-142  -12,-142
+      C -48,-142  -78,-128  -94,-106
+      C -110,-84  -108,-56  -98,-38
+      C -88,-20  -64,-6  -32,2
+      L 24,18
+      C 48,24  66,36  74,54
+      C 82,72  76,94  58,110
+      C 40,126  10,136  -24,136
+      C -60,136  -84,124  -96,112
+    " fill="none" stroke="url(#letterGold)" stroke-width="16" 
+      stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Parallel inner stroke for weight -->
+    <path d="
+      M 46,-118
+      C 36,-126  16,-132  -8,-132
+      C -40,-132  -66,-120  -80,-102
+      C -94,-84  -94,-60  -86,-44
+      C -78,-28  -58,-16  -30,-8
+      L 26,6
+      C 50,12  66,24  74,42
+      C 82,60  78,82  62,96
+      C 46,110  20,120  -14,120
+      C -46,120  -68,112  -78,104
+    " fill="none" stroke="url(#letterGold)" stroke-width="6" stroke-opacity="0.3"
+      stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Top flourish swash -->
+    <path d="
+      M 52,-125
+      C 66,-134  82,-138  92,-132
+      C 100,-126  96,-116  86,-112
+      C 78,-109  72,-112  68,-116
+    " fill="none" stroke="#d4a843" stroke-width="5" stroke-linecap="round" stroke-opacity="0.65"/>
+    
+    <!-- Bottom flourish swash -->
+    <path d="
+      M -96,112
+      C -108,120  -120,126  -124,136
+      C -126,146  -118,150  -108,146
+      C -100,142  -96,136  -94,130
+    " fill="none" stroke="#8c3344" stroke-width="5" stroke-linecap="round" stroke-opacity="0.65"/>
+    
+    <!-- Small decorative cross-stroke at center -->
+    <line x1="-8" y1="6" x2="8" y2="6" stroke="#d4a843" stroke-width="2" stroke-opacity="0.25"/>
+  </g>
+</svg>

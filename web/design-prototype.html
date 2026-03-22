@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Squire — Chat Redesign</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-app: #1a1816;
+      --bg-card: #242120;
+      --bg-card-user: rgba(0, 0, 0, 0.18);
+      --bg-input: #282524;
+      --bg-nav: #1e1c1a;
+      --bg-nav-expanded: #222020;
+      --bg-hover: #2e2a27;
+
+      --text-primary: #ede8e0;
+      --text-secondary: #9e9488;
+      --text-tertiary: #6e6560;
+      --text-placeholder: #5a5450;
+
+      --terracotta: #c4694a;
+      --terracotta-hover: #d4795a;
+      --terracotta-dim: rgba(196, 105, 74, 0.12);
+      --olive: #7a8c5e;
+      --olive-dim: rgba(122, 140, 94, 0.12);
+      --mustard: #d4a843;
+      --mustard-dim: rgba(212, 168, 67, 0.10);
+      --burnt-orange: #cc6b33;
+      --burgundy: #8c3344;
+      --taupe: #8a7e72;
+      --cream: #c4b49a;
+
+      --border-subtle: rgba(196, 168, 140, 0.07);
+      --border-focus: rgba(196, 105, 74, 0.25);
+      --divider: rgba(196, 168, 140, 0.06);
+      --glow-card: 0 0 1px rgba(196, 168, 140, 0.08), 0 0 50px -15px rgba(196, 168, 140, 0.06);
+      --glow-card-hover: 0 0 1px rgba(196, 168, 140, 0.12), 0 0 60px -10px rgba(196, 168, 140, 0.09);
+      --shadow-input: 0 4px 20px rgba(0, 0, 0, 0.35);
+
+      --nav-height: 62px;
+      --card-gap: 10px;
+      --side-pad: 14px;
+
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ─────────────── APP SHELL ─────────────── */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* ─────────────── INPUT CARD (sticky top) ─────────────── */
+    .input-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--bg-app);
+      padding: 16px var(--side-pad) 0;
+      flex-shrink: 0;
+    }
+
+    .input-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: var(--shadow-input);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-card.focused {
+      border-color: var(--border-focus);
+      box-shadow: var(--shadow-input), 0 0 0 1px rgba(196, 105, 74, 0.08);
+    }
+
+    .input-textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.5;
+      padding: 18px 20px 8px;
+      resize: none;
+      min-height: 52px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+
+    .input-textarea::placeholder {
+      color: var(--text-placeholder);
+      font-weight: 400;
+    }
+
+    .input-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px 12px;
+    }
+
+    .left-actions { display: flex; gap: 4px; }
+
+    .action-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      background: transparent;
+      color: var(--taupe);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .action-btn:hover { background: rgba(196, 168, 140, 0.08); color: var(--cream); }
+    .action-btn:active { transform: scale(0.95); }
+    .action-btn svg { width: 22px; height: 22px; }
+
+    .send-btn {
+      width: 46px;
+      height: 46px;
+      border: none;
+      background: var(--terracotta);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      transition: background 0.2s ease, transform 0.15s var(--ease-spring);
+    }
+
+    .send-btn:hover { background: var(--terracotta-hover); }
+    .send-btn:active { transform: scale(0.93); }
+    .send-btn svg { width: 22px; height: 22px; }
+
+    /* ─────────────── FILTER BAR ─────────────── */
+    .filter-bar {
+      padding: 10px 0 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-toggle {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-tertiary);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .filter-toggle:hover { border-color: rgba(196, 168, 140, 0.18); color: var(--text-secondary); }
+
+    .filter-toggle.active {
+      background: var(--terracotta-dim);
+      border-color: rgba(196, 105, 74, 0.22);
+      color: var(--terracotta);
+    }
+
+    .filter-toggle svg { width: 15px; height: 15px; }
+
+    .filter-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 17px;
+      padding: 0 5px;
+      background: var(--terracotta-dim);
+      color: var(--terracotta);
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 9px;
+    }
+
+    /* Search + tags (visible in saved mode) */
+    .filter-expanded {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      animation: filterSlideIn 0.3s var(--ease-out);
+    }
+
+    .filter-expanded.visible { display: flex; }
+
+    @keyframes filterSlideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .filter-search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 0 14px;
+      transition: border-color 0.2s ease;
+    }
+
+    .filter-search:focus-within { border-color: var(--border-focus); }
+    .filter-search svg { width: 17px; height: 17px; color: var(--text-tertiary); flex-shrink: 0; }
+
+    .filter-search input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 11px 0;
+    }
+
+    .filter-search input::placeholder { color: var(--text-placeholder); }
+
+    .filter-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding-bottom: 2px;
+    }
+
+    /* ─────────────── TAG CHIPS ─────────────── */
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 12px;
+      background: rgba(138, 126, 114, 0.12);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tag-chip:hover { background: rgba(138, 126, 114, 0.2); color: var(--text-primary); }
+
+    .tag-chip.active {
+      background: var(--terracotta-dim);
+      color: var(--terracotta);
+      border-color: rgba(196, 105, 74, 0.2);
+    }
+
+    .tag-chip-all {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .tag-chip-sm {
+      padding: 2px 8px;
+      font-size: 10px;
+      letter-spacing: 0.01em;
+    }
+
+    /* ─────────────── CHAT AREA ─────────────── */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 6px var(--side-pad) 0;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .chat-area::-webkit-scrollbar { width: 4px; }
+    .chat-area::-webkit-scrollbar-track { background: transparent; }
+    .chat-area::-webkit-scrollbar-thumb { background: rgba(196, 168, 140, 0.12); border-radius: 2px; }
+
+    .cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--card-gap);
+      padding-bottom: calc(var(--nav-height) + 20px);
+    }
+
+    .cards-container.hidden { display: none; }
+
+    /* ─────────────── CONVERSATION CARD ─────────────── */
+    .conv-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--glow-card);
+      transition: box-shadow 0.4s ease;
+      position: relative;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: cardReveal 0.5s var(--ease-out) forwards;
+    }
+
+    .conv-card:hover { box-shadow: var(--glow-card-hover); }
+
+    .conv-card:nth-child(1) { animation-delay: 0.05s; }
+    .conv-card:nth-child(2) { animation-delay: 0.12s; }
+    .conv-card:nth-child(3) { animation-delay: 0.19s; }
+    .conv-card:nth-child(4) { animation-delay: 0.26s; }
+    .conv-card:nth-child(5) { animation-delay: 0.33s; }
+
+    @keyframes cardReveal {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-user {
+      padding: 16px 20px 12px;
+      background: var(--bg-card-user);
+      position: relative;
+    }
+
+    .user-label {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      margin-bottom: 6px;
+    }
+
+    .card-user p {
+      color: var(--text-secondary);
+      font-weight: 400;
+      font-size: 14.5px;
+    }
+
+    .card-divider { height: 1px; background: var(--divider); }
+
+    .card-response { padding: 14px 20px 16px; }
+
+    .card-response p { color: var(--text-primary); font-weight: 500; }
+    .card-response p + p { margin-top: 10px; }
+    .card-response strong { color: var(--cream); font-weight: 600; }
+
+    .card-response code {
+      background: rgba(196, 168, 140, 0.08);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px 12px;
+    }
+
+    .card-time {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      font-weight: 400;
+    }
+
+    .save-btn {
+      width: 34px;
+      height: 34px;
+      border: none;
+      background: transparent;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+
+    .save-btn:hover { color: var(--terracotta); background: var(--terracotta-dim); }
+    .save-btn.saved { color: var(--terracotta); }
+    .save-btn svg { width: 18px; height: 18px; }
+
+    /* ─────────────── TAG INPUT ROW (inline on chat cards) ─────────────── */
+    .tag-input-row {
+      display: none;
+      padding: 10px 20px 8px;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      border-top: 1px solid var(--divider);
+      animation: tagRowIn 0.25s var(--ease-out);
+    }
+
+    .tag-input-row.visible { display: flex; }
+
+    @keyframes tagRowIn {
+      from { opacity: 0; max-height: 0; }
+      to { opacity: 1; max-height: 80px; }
+    }
+
+    .tag-input-row .tag-chip-suggested {
+      padding: 3px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      border: 1px dashed rgba(138, 126, 114, 0.25);
+      background: transparent;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .tag-input-row .tag-chip-suggested:hover {
+      background: rgba(138, 126, 114, 0.1);
+      color: var(--text-secondary);
+      border-style: solid;
+    }
+
+    .tag-input-row .tag-chip-added {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px 3px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: inherit;
+      background: var(--olive-dim);
+      color: var(--olive);
+      border: 1px solid rgba(122, 140, 94, 0.2);
+      cursor: default;
+    }
+
+    .tag-input-row .tag-chip-added .x {
+      cursor: pointer;
+      opacity: 0.6;
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .tag-input-row .tag-chip-added .x:hover { opacity: 1; }
+
+    .tag-text-input {
+      width: 90px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 0;
+    }
+
+    .tag-text-input::placeholder { color: var(--text-placeholder); font-size: 11px; }
+
+    /* ─────────────── CARD INLINE TAGS (shown after save) ─────────────── */
+    .card-tags {
+      display: flex;
+      gap: 4px;
+      padding: 0 20px 6px;
+      flex-wrap: wrap;
+    }
+
+    .card-tags .tag-chip-sm {
+      padding: 2px 8px;
+      font-size: 9px;
+      font-weight: 600;
+      background: var(--olive-dim);
+      color: var(--olive);
+      border: none;
+      cursor: default;
+    }
+
+    /* ─────────────── SAVED CARDS VIEW ─────────────── */
+    .saved-cards-container {
+      display: none;
+      flex-direction: column;
+      gap: var(--card-gap);
+      padding-bottom: calc(var(--nav-height) + 20px);
+    }
+
+    .saved-cards-container.visible { display: flex; }
+
+    .saved-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--glow-card);
+      transition: box-shadow 0.4s ease;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: cardReveal 0.4s var(--ease-out) forwards;
+    }
+
+    .saved-card:nth-child(1) { animation-delay: 0.04s; }
+    .saved-card:nth-child(2) { animation-delay: 0.10s; }
+    .saved-card:nth-child(3) { animation-delay: 0.16s; }
+    .saved-card:nth-child(4) { animation-delay: 0.22s; }
+
+    .saved-card:hover { box-shadow: var(--glow-card-hover); }
+
+    .saved-card-tags {
+      display: flex;
+      gap: 5px;
+      padding: 14px 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .saved-card-tags .tag-chip-sm {
+      padding: 3px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      background: var(--olive-dim);
+      color: var(--olive);
+      border: none;
+      cursor: default;
+    }
+
+    .saved-card-response {
+      padding: 10px 20px 14px;
+    }
+
+    .saved-card-response p {
+      color: var(--text-primary);
+      font-weight: 500;
+      font-size: 14.5px;
+      line-height: 1.55;
+    }
+
+    .saved-card-response p + p { margin-top: 8px; }
+    .saved-card-response strong { color: var(--cream); font-weight: 600; }
+
+    .saved-card-response ol {
+      list-style: none;
+      counter-reset: saved-counter;
+      margin: 6px 0;
+    }
+
+    .saved-card-response ol li {
+      counter-increment: saved-counter;
+      padding: 2px 0 2px 22px;
+      position: relative;
+      font-weight: 500;
+      font-size: 14.5px;
+    }
+
+    .saved-card-response ol li::before {
+      content: counter(saved-counter) ".";
+      position: absolute;
+      left: 0;
+      color: var(--terracotta);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    /* Expandable conversation context */
+    .saved-context-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 20px 4px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .saved-context-toggle span {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      transition: color 0.15s ease;
+    }
+
+    .saved-context-toggle:hover span { color: var(--text-secondary); }
+
+    .saved-context-toggle svg {
+      width: 13px;
+      height: 13px;
+      color: var(--text-tertiary);
+      transition: transform 0.25s var(--ease-out), color 0.15s ease;
+    }
+
+    .saved-context-toggle:hover svg { color: var(--text-secondary); }
+    .saved-context-toggle.open svg { transform: rotate(90deg); }
+
+    .saved-context-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s var(--ease-out);
+      margin: 0 20px;
+    }
+
+    .saved-context-body.open {
+      max-height: 250px;
+      margin-bottom: 6px;
+    }
+
+    .saved-context-inner {
+      background: var(--bg-card-user);
+      border-left: 2px solid rgba(196, 168, 140, 0.1);
+      padding: 12px 16px;
+    }
+
+    .saved-context-inner .ctx-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      margin-bottom: 6px;
+    }
+
+    .saved-context-inner p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .saved-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 20px 12px;
+    }
+
+    /* ─────────────── REPORT CARD ─────────────── */
+    .report-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--mustard);
+      background: var(--mustard-dim);
+      padding: 3px 10px;
+      margin-bottom: 10px;
+    }
+
+    .report-title {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .report-summary {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    .read-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      background: var(--terracotta-dim);
+      color: var(--terracotta);
+      border: 1px solid rgba(196, 105, 74, 0.18);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .read-btn:hover { background: rgba(196, 105, 74, 0.18); border-color: rgba(196, 105, 74, 0.3); }
+    .read-btn svg { width: 14px; height: 14px; }
+
+    /* ─────────────── STREAMING CARD ─────────────── */
+    .streaming .card-response::after {
+      content: '';
+      display: inline-block;
+      width: 2px;
+      height: 18px;
+      background: var(--terracotta);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+    }
+
+    .streaming {
+      border-color: rgba(196, 105, 74, 0.12);
+      animation: cardReveal 0.5s var(--ease-out) forwards, streamPulse 2.5s ease-in-out infinite 0.5s;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    @keyframes streamPulse {
+      0%, 100% { box-shadow: var(--glow-card); }
+      50% { box-shadow: 0 0 1px rgba(196, 105, 74, 0.15), 0 0 60px -10px rgba(196, 105, 74, 0.10); }
+    }
+
+    /* ─────────────── BOTTOM NAV ─────────────── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 720px;
+      z-index: 30;
+      background: var(--bg-nav);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .nav-handle {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0 4px;
+      cursor: pointer;
+    }
+
+    .handle-bar {
+      width: 36px;
+      height: 3px;
+      background: var(--text-tertiary);
+      border-radius: 2px;
+      opacity: 0.5;
+      transition: opacity 0.2s ease;
+    }
+
+    .nav-handle:hover .handle-bar { opacity: 0.8; }
+
+    .nav-items {
+      display: flex;
+      justify-content: space-around;
+      padding: 2px 8px 14px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: color 0.2s ease, background 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .nav-item:hover { color: var(--text-secondary); background: rgba(196, 168, 140, 0.05); }
+    .nav-item.active { color: var(--terracotta); }
+    .nav-item svg { width: 22px; height: 22px; }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .nav-expanded {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s var(--ease-out), padding 0.3s ease;
+      padding: 0 16px;
+      background: var(--bg-nav-expanded);
+      border-top: 1px solid transparent;
+    }
+
+    .nav-expanded.open {
+      max-height: 420px;
+      padding: 12px 16px 20px;
+      border-top-color: var(--divider);
+    }
+
+    .nav-expanded-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 10px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.15s ease, color 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .nav-expanded-item:hover { background: rgba(196, 168, 140, 0.06); color: var(--text-primary); }
+    .nav-expanded-item svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--taupe); }
+    .nav-expanded-item .item-label { font-size: 14px; font-weight: 500; }
+    .nav-expanded-item .item-detail { font-size: 12px; color: var(--text-tertiary); margin-left: auto; }
+
+    /* ─────────────── REPORT READER (fullscreen) ─────────────── */
+    .report-reader {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: var(--bg-app);
+      transform: translateY(100%);
+      transition: transform 0.45s var(--ease-out);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .report-reader.open { transform: translateY(0); }
+
+    .reader-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--divider);
+      flex-shrink: 0;
+    }
+
+    .reader-close {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .reader-close:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
+
+    .reader-export-btns { display: flex; gap: 8px; }
+
+    .export-btn {
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .export-btn:hover { border-color: var(--terracotta); color: var(--terracotta); background: var(--terracotta-dim); }
+
+    .reader-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 40px 28px 60px;
+    }
+
+    .reader-body::-webkit-scrollbar { width: 4px; }
+    .reader-body::-webkit-scrollbar-thumb { background: rgba(196, 168, 140, 0.12); border-radius: 2px; }
+
+    .reader-body h1 {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 32px;
+      font-weight: 400;
+      color: var(--text-primary);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .reader-meta {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .reader-body h2 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--cream);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 32px 0 14px;
+    }
+
+    .reader-body p {
+      color: var(--text-primary);
+      font-weight: 400;
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .reader-body ul { list-style: none; margin-bottom: 14px; }
+
+    .reader-body li {
+      color: var(--text-primary);
+      font-size: 15px;
+      line-height: 1.6;
+      padding: 4px 0 4px 20px;
+      position: relative;
+    }
+
+    .reader-body li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 13px;
+      width: 6px;
+      height: 6px;
+      background: var(--terracotta);
+      border-radius: 1px;
+    }
+
+    .stat-row { display: flex; gap: 16px; margin: 16px 0 24px; flex-wrap: wrap; }
+
+    .stat-block {
+      flex: 1;
+      min-width: 100px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 14px 16px;
+    }
+
+    .stat-value { font-size: 26px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 6px;
+    }
+
+    .stat-block.positive .stat-value { color: var(--olive); }
+    .stat-block.highlight .stat-value { color: var(--mustard); }
+    .stat-block.accent .stat-value { color: var(--terracotta); }
+
+    /* ─────────────── BACKDROP ─────────────── */
+    .nav-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 25;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .nav-backdrop.visible { opacity: 1; pointer-events: auto; }
+
+    /* ─────────────── RESPONSIVE ─────────────── */
+    @media (min-width: 640px) {
+      :root { --side-pad: 24px; --card-gap: 12px; }
+      .input-wrapper { padding-top: 24px; }
+      .reader-body { padding: 48px 48px 80px; max-width: 640px; margin: 0 auto; }
+      .reader-body h1 { font-size: 38px; }
+      .stat-block { min-width: 130px; }
+    }
+
+    @media (min-width: 768px) {
+      .reader-body { padding: 56px 20px 80px; max-width: 600px; }
+    }
+
+    @supports (padding-top: env(safe-area-inset-top)) {
+      .input-wrapper { padding-top: calc(16px + env(safe-area-inset-top)); }
+      .nav-items { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+    }
+
+    /* ─────────────── OL STYLED RESPONSE ─────────────── */
+    .card-response ol {
+      list-style: none;
+      counter-reset: resp-counter;
+      margin: 6px 0;
+    }
+
+    .card-response ol li {
+      counter-increment: resp-counter;
+      padding: 3px 0 3px 24px;
+      position: relative;
+      font-weight: 500;
+    }
+
+    .card-response ol li::before {
+      content: counter(resp-counter) ".";
+      position: absolute;
+      left: 0;
+      color: var(--terracotta);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* ─────────────── EMPTY STATE ─────────────── */
+    .saved-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .saved-empty svg { width: 40px; height: 40px; color: var(--text-tertiary); opacity: 0.4; margin-bottom: 14px; }
+    .saved-empty p { color: var(--text-tertiary); font-size: 14px; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ───── INPUT CARD ───── -->
+  <div class="input-wrapper">
+    <div class="input-card" id="inputCard">
+      <textarea class="input-textarea" id="messageInput" placeholder="Ask Squire anything..." rows="1"></textarea>
+      <div class="input-actions">
+        <div class="left-actions">
+          <button class="action-btn" title="Voice input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+          </button>
+          <button class="action-btn" title="Attach image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </button>
+        </div>
+        <button class="send-btn" id="sendBtn" title="Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ───── FILTER BAR ───── -->
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-bar-row">
+        <button class="filter-toggle" id="filterToggle" onclick="toggleSavedView()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+          Saved
+          <span class="filter-count">4</span>
+        </button>
+      </div>
+      <div class="filter-expanded" id="filterExpanded">
+        <div class="filter-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" placeholder="Search saved cards..." id="savedSearchInput" oninput="filterSavedCards()">
+        </div>
+        <div class="filter-tags" id="filterTagsBar">
+          <button class="tag-chip tag-chip-all active" onclick="filterByTag(this, 'all')">All</button>
+          <button class="tag-chip" onclick="filterByTag(this, 'work')">work</button>
+          <button class="tag-chip" onclick="filterByTag(this, 'email')">email</button>
+          <button class="tag-chip" onclick="filterByTag(this, 'health')">health</button>
+          <button class="tag-chip" onclick="filterByTag(this, 'weekly-review')">weekly-review</button>
+          <button class="tag-chip" onclick="filterByTag(this, 'squire')">squire</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── CHAT AREA ───── -->
+  <div class="chat-area" id="chatArea">
+
+    <!-- Live chat cards -->
+    <div class="cards-container" id="cardsContainer">
+
+      <!-- Card 1 — Streaming -->
+      <div class="conv-card streaming">
+        <div class="card-user">
+          <span class="user-label">you</span>
+          <p>How should I prepare for the design review at 1pm?</p>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-response" id="streamTarget">
+          <p>Looking at the agenda Sarah shared, the review covers three areas: the card-based chat redesign, mobile navigation patterns, and the new color system. I'd suggest pulling up the prototype and walking through the earthy palette decisions</p>
+        </div>
+      </div>
+
+      <!-- Card 2 — Calendar -->
+      <div class="conv-card">
+        <div class="card-user">
+          <span class="user-label">you</span>
+          <p>What's on my calendar today?</p>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-response">
+          <p>You have 3 events today:</p>
+          <ol>
+            <li><strong>10:00 AM</strong> — Standup (15 min, recurring)</li>
+            <li><strong>1:00 PM</strong> — Design review with Sarah and the team. Shared doc attached from last week.</li>
+            <li><strong>4:00 PM</strong> — Dentist appointment at Dr. Chen's office</li>
+          </ol>
+          <p>Want me to pull up the notes from last week's design session?</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-time">12 min ago</span>
+          <button class="save-btn" onclick="handleSave(this)" title="Save to documents">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="tag-input-row" data-card-tags=""></div>
+      </div>
+
+      <!-- Card 3 — Report -->
+      <div class="conv-card">
+        <div class="card-user">
+          <span class="user-label">you</span>
+          <p>Give me a weekly productivity report</p>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-response">
+          <div class="report-badge">Report</div>
+          <h3 class="report-title">Weekly Productivity Report: Feb 7–13</h3>
+          <p class="report-summary">Strong week with 14 tasks completed, 3 documents created, and meaningful progress on the UI redesign. Focus time up 20% over last week, with Tuesday and Thursday being your most productive days.</p>
+          <button class="read-btn" onclick="openReader()">
+            Read Full Report
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+        <div class="card-tags">
+          <span class="tag-chip-sm">work</span>
+          <span class="tag-chip-sm">weekly-review</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-time">1 hr ago</span>
+          <button class="save-btn saved" title="Saved">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 4 — Reminder -->
+      <div class="conv-card">
+        <div class="card-user">
+          <span class="user-label">you</span>
+          <p>Remind me to call Dr. Chen tomorrow at 2pm</p>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-response">
+          <p>Done — reminder set for tomorrow (Friday) at 2:00 PM to call Dr. Chen. Want me to look up his number from your contacts?</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-time">3 hrs ago</span>
+          <button class="save-btn" onclick="handleSave(this)" title="Save to documents">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="tag-input-row" data-card-tags=""></div>
+      </div>
+
+      <!-- Card 5 — Email summary -->
+      <div class="conv-card">
+        <div class="card-user">
+          <span class="user-label">you</span>
+          <p>Summarize my unread emails</p>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-response">
+          <p>You have 12 unread emails. Here are the ones that need attention:</p>
+          <ol>
+            <li><strong>Sarah (Marketing)</strong> — Wants to schedule a brand strategy session, flexible next week</li>
+            <li><strong>AWS Billing Alert</strong> — Costs up 23% this month, mostly increased EC2 usage</li>
+            <li><strong>GitHub</strong> — 3 PRs awaiting your review on the squire repo</li>
+          </ol>
+          <p>The rest are newsletters and notifications. Want me to draft a reply to Sarah or dig into the AWS costs?</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-time">5 hrs ago</span>
+          <button class="save-btn" onclick="handleSave(this)" title="Save to documents">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="tag-input-row" data-card-tags=""></div>
+      </div>
+
+    </div>
+
+    <!-- Saved cards view (hidden by default) -->
+    <div class="saved-cards-container" id="savedCardsContainer">
+
+      <!-- Saved 1 — Email summary -->
+      <div class="saved-card" data-tags="work,email">
+        <div class="saved-card-tags">
+          <span class="tag-chip-sm">work</span>
+          <span class="tag-chip-sm">email</span>
+        </div>
+        <div class="saved-card-response">
+          <p>You have 12 unread emails. Here are the ones that need attention:</p>
+          <ol>
+            <li><strong>Sarah (Marketing)</strong> — Wants to schedule a brand strategy session, flexible next week</li>
+            <li><strong>AWS Billing Alert</strong> — Costs up 23% this month, mostly increased EC2 usage</li>
+            <li><strong>GitHub</strong> — 3 PRs awaiting your review on the squire repo</li>
+          </ol>
+          <p>The rest are newsletters and notifications. Want me to draft a reply to Sarah or dig into the AWS costs?</p>
+        </div>
+        <div class="saved-context-toggle" onclick="toggleContext(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          <span>Conversation context</span>
+        </div>
+        <div class="saved-context-body">
+          <div class="saved-context-inner">
+            <div class="ctx-label">You asked</div>
+            <p>Summarize my unread emails</p>
+          </div>
+        </div>
+        <div class="saved-card-footer">
+          <span class="card-time">Saved 5 hrs ago</span>
+          <button class="save-btn saved" onclick="unsaveCard(this)" title="Remove from saved">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Saved 2 — Report -->
+      <div class="saved-card" data-tags="work,weekly-review">
+        <div class="saved-card-tags">
+          <span class="tag-chip-sm">work</span>
+          <span class="tag-chip-sm">weekly-review</span>
+        </div>
+        <div class="saved-card-response">
+          <div class="report-badge">Report</div>
+          <h3 class="report-title" style="font-size:19px; margin-bottom:6px;">Weekly Productivity Report: Feb 7–13</h3>
+          <p>Strong week with 14 tasks completed, 3 documents created, and meaningful progress on the UI redesign. Focus time up 20% over last week.</p>
+          <button class="read-btn" onclick="openReader()" style="margin-top:8px;">
+            Read Full Report
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <div class="saved-context-toggle" onclick="toggleContext(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          <span>Conversation context</span>
+        </div>
+        <div class="saved-context-body">
+          <div class="saved-context-inner">
+            <div class="ctx-label">You asked</div>
+            <p>Give me a weekly productivity report</p>
+          </div>
+        </div>
+        <div class="saved-card-footer">
+          <span class="card-time">Saved 1 hr ago</span>
+          <button class="save-btn saved" onclick="unsaveCard(this)" title="Remove from saved">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Saved 3 — Architecture decision -->
+      <div class="saved-card" data-tags="squire,work">
+        <div class="saved-card-tags">
+          <span class="tag-chip-sm">squire</span>
+          <span class="tag-chip-sm">work</span>
+        </div>
+        <div class="saved-card-response">
+          <p>For the card-pair architecture, I'd recommend keeping the <code>chat_messages</code> table unchanged and doing the pairing purely on the frontend. Group messages by alternating user/assistant pairs in the React component. This means zero migration risk and the pairing logic lives in a single <code>ConversationCard</code> component.</p>
+          <p>If you later want server-side pairing (for search, exports), you can add a <code>pair_id</code> column without breaking anything.</p>
+        </div>
+        <div class="saved-context-toggle" onclick="toggleContext(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          <span>Conversation context</span>
+        </div>
+        <div class="saved-context-body">
+          <div class="saved-context-inner">
+            <div class="ctx-label">You asked</div>
+            <p>Should we change the database schema for the card-pair UI or handle it on the frontend? What's the cleanest approach?</p>
+          </div>
+        </div>
+        <div class="saved-card-footer">
+          <span class="card-time">Saved 2 days ago</span>
+          <button class="save-btn saved" onclick="unsaveCard(this)" title="Remove from saved">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Saved 4 — Health -->
+      <div class="saved-card" data-tags="health">
+        <div class="saved-card-tags">
+          <span class="tag-chip-sm">health</span>
+        </div>
+        <div class="saved-card-response">
+          <p>Done — reminder set for tomorrow (Friday) at 2:00 PM to call Dr. Chen. His number from your contacts is (512) 555-0147. His office is at 4200 Medical Parkway, Suite 302.</p>
+        </div>
+        <div class="saved-context-toggle" onclick="toggleContext(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          <span>Conversation context</span>
+        </div>
+        <div class="saved-context-body">
+          <div class="saved-context-inner">
+            <div class="ctx-label">You asked</div>
+            <p>Remind me to call Dr. Chen tomorrow at 2pm and look up his number</p>
+          </div>
+        </div>
+        <div class="saved-card-footer">
+          <span class="card-time">Saved 3 hrs ago</span>
+          <button class="save-btn saved" onclick="unsaveCard(this)" title="Remove from saved">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ───── NAV BACKDROP ───── -->
+  <div class="nav-backdrop" id="navBackdrop" onclick="closeNav()"></div>
+
+  <!-- ───── BOTTOM NAV ───── -->
+  <div class="bottom-nav" id="bottomNav">
+    <div class="nav-handle" onclick="toggleNav()">
+      <div class="handle-bar"></div>
+    </div>
+    <div class="nav-items">
+      <a class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="nav-label">Chat</span>
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        <span class="nav-label">Dash</span>
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        <span class="nav-label">Notes</span>
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span class="nav-label">Docs</span>
+      </a>
+      <a class="nav-item" onclick="toggleNav(); event.preventDefault();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+        </svg>
+        <span class="nav-label">More</span>
+      </a>
+    </div>
+    <div class="nav-expanded" id="navExpanded">
+      <div class="nav-expanded-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="item-label">Timeline</span>
+        <span class="item-detail">Recent</span>
+      </div>
+      <div class="nav-expanded-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <span class="item-label">Commitments</span>
+        <span class="item-detail">5 active</span>
+      </div>
+      <div class="nav-expanded-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="item-label">Reminders</span>
+        <span class="item-detail">3 upcoming</span>
+      </div>
+      <div class="nav-expanded-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span class="item-label">Calendar</span>
+        <span class="item-detail">3 today</span>
+      </div>
+      <div class="nav-expanded-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span class="item-label">Settings</span>
+        <span class="item-detail"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── REPORT READER ───── -->
+  <div class="report-reader" id="reportReader">
+    <div class="reader-header">
+      <button class="reader-close" onclick="closeReader()">&times;</button>
+      <div class="reader-export-btns">
+        <button class="export-btn">Copy</button>
+        <button class="export-btn">Share</button>
+        <button class="export-btn">PDF</button>
+      </div>
+    </div>
+    <div class="reader-body">
+      <h1>Weekly Productivity Report</h1>
+      <div class="reader-meta">Feb 7 – 13, 2026 &nbsp;·&nbsp; Generated by Squire</div>
+      <div class="stat-row">
+        <div class="stat-block accent">
+          <div class="stat-value">14</div>
+          <div class="stat-label">Tasks Done</div>
+        </div>
+        <div class="stat-block positive">
+          <div class="stat-value">+20%</div>
+          <div class="stat-label">Focus Time</div>
+        </div>
+        <div class="stat-block highlight">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Docs Created</div>
+        </div>
+      </div>
+      <h2>Highlights</h2>
+      <ul>
+        <li>Completed the card-based chat UI prototype with earthy color palette</li>
+        <li>Deployed image upload and vision support to production</li>
+        <li>Resolved the chat:done race condition with added diagnostics</li>
+        <li>Bumped tool iteration limits from 10 to 50 for complex workflows</li>
+      </ul>
+      <h2>Focus Distribution</h2>
+      <p>Your most productive days were Tuesday and Thursday, with 4+ hours of uninterrupted deep work each. Monday was fragmented by meetings — consider blocking morning hours next week.</p>
+      <p>The UI redesign work consumed about 40% of your creative output. Email and admin tasks stayed under 15%, which is healthy.</p>
+      <h2>Patterns Worth Noting</h2>
+      <p>You've been consistently productive in the 9–11 AM window. Your afternoon sessions (2–4 PM) had more task-switching. The reminder to call Dr. Chen was one of 8 reminders you set this week — up from 3 last week, suggesting you're leaning more on the system for time management.</p>
+      <h2>Recommendations</h2>
+      <ul>
+        <li>Block 9–11 AM as "deep work" on your calendar for the coming week</li>
+        <li>Review the 3 pending PRs on the squire repo before they go stale</li>
+        <li>Investigate the AWS cost increase — the 23% spike deserves a closer look</li>
+        <li>Schedule the brand strategy session with Sarah before end of week</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ─── State ───
+  let savedMode = false;
+  let activeTag = 'all';
+  const allSuggestedTags = ['work', 'email', 'health', 'squire', 'schedule', 'project'];
+
+  // ─── Textarea auto-resize ───
+  const textarea = document.getElementById('messageInput');
+  const inputCard = document.getElementById('inputCard');
+
+  textarea.addEventListener('input', () => {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  });
+
+  textarea.addEventListener('focus', () => inputCard.classList.add('focused'));
+  textarea.addEventListener('blur', () => inputCard.classList.remove('focused'));
+
+  // ─── Send ───
+  document.getElementById('sendBtn').addEventListener('click', () => {
+    const val = textarea.value.trim();
+    if (!val) return;
+
+    const card = document.createElement('div');
+    card.className = 'conv-card';
+    card.innerHTML = `
+      <div class="card-user">
+        <span class="user-label">you</span>
+        <p>${escapeHtml(val)}</p>
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-response">
+        <p style="color: var(--text-tertiary); font-style: italic;">Thinking...</p>
+      </div>
+    `;
+
+    // If in saved mode, switch back to chat
+    if (savedMode) toggleSavedView();
+
+    const container = document.getElementById('cardsContainer');
+    container.insertBefore(card, container.firstChild);
+    textarea.value = '';
+    textarea.style.height = 'auto';
+    document.getElementById('chatArea').scrollTop = 0;
+  });
+
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById('sendBtn').click();
+    }
+  });
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ─── Saved View Toggle ───
+  function toggleSavedView() {
+    savedMode = !savedMode;
+    const toggle = document.getElementById('filterToggle');
+    const expanded = document.getElementById('filterExpanded');
+    const chatCards = document.getElementById('cardsContainer');
+    const savedCards = document.getElementById('savedCardsContainer');
+
+    toggle.classList.toggle('active', savedMode);
+
+    if (savedMode) {
+      expanded.classList.add('visible');
+      chatCards.classList.add('hidden');
+      savedCards.classList.add('visible');
+      // Re-trigger animations
+      savedCards.querySelectorAll('.saved-card').forEach(c => {
+        c.style.animation = 'none';
+        c.offsetHeight; // reflow
+        c.style.animation = '';
+      });
+      document.getElementById('savedSearchInput').focus();
+    } else {
+      expanded.classList.remove('visible');
+      chatCards.classList.remove('hidden');
+      savedCards.classList.remove('visible');
+      // Reset filters
+      activeTag = 'all';
+      document.getElementById('savedSearchInput').value = '';
+      document.querySelectorAll('#filterTagsBar .tag-chip').forEach(c => c.classList.remove('active'));
+      document.querySelector('#filterTagsBar .tag-chip-all').classList.add('active');
+      showAllSavedCards();
+    }
+
+    document.getElementById('chatArea').scrollTop = 0;
+  }
+
+  // ─── Tag Filtering ───
+  function filterByTag(chip, tag) {
+    activeTag = tag;
+    // Update chip active states
+    document.querySelectorAll('#filterTagsBar .tag-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    filterSavedCards();
+  }
+
+  function filterSavedCards() {
+    const query = document.getElementById('savedSearchInput').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('#savedCardsContainer .saved-card');
+
+    cards.forEach(card => {
+      const tags = (card.dataset.tags || '').split(',');
+      const text = card.textContent.toLowerCase();
+      const matchesTag = activeTag === 'all' || tags.includes(activeTag);
+      const matchesSearch = !query || text.includes(query);
+      card.style.display = (matchesTag && matchesSearch) ? '' : 'none';
+    });
+  }
+
+  function showAllSavedCards() {
+    document.querySelectorAll('#savedCardsContainer .saved-card').forEach(c => {
+      c.style.display = '';
+    });
+  }
+
+  // ─── Save with Tags ───
+  function handleSave(btn) {
+    const card = btn.closest('.conv-card');
+    const tagRow = card.querySelector('.tag-input-row');
+    const isSaved = btn.classList.contains('saved');
+
+    if (isSaved) {
+      // Unsave
+      btn.classList.remove('saved');
+      btn.querySelector('svg').setAttribute('fill', 'none');
+      if (tagRow) {
+        tagRow.classList.remove('visible');
+        tagRow.innerHTML = '';
+        tagRow.dataset.cardTags = '';
+      }
+      // Remove card-tags display
+      const cardTags = card.querySelector('.card-tags');
+      if (cardTags) cardTags.remove();
+      return;
+    }
+
+    // Save
+    btn.classList.add('saved');
+    btn.querySelector('svg').setAttribute('fill', 'currentColor');
+
+    // Show tag input row
+    if (tagRow) {
+      // Build suggested tags (exclude already added)
+      const existingTags = (tagRow.dataset.cardTags || '').split(',').filter(Boolean);
+      let html = '';
+
+      // Added tags
+      existingTags.forEach(t => {
+        html += `<span class="tag-chip-added">${t}<span class="x" onclick="removeCardTag(this, '${t}')">&times;</span></span>`;
+      });
+
+      // Suggested tags
+      allSuggestedTags.filter(t => !existingTags.includes(t)).slice(0, 4).forEach(t => {
+        html += `<button class="tag-chip-suggested" onclick="addCardTag(this, '${t}')">${t}</button>`;
+      });
+
+      html += `<input class="tag-text-input" placeholder="new tag..." onkeydown="handleTagInput(event, this)">`;
+      tagRow.innerHTML = html;
+      tagRow.classList.add('visible');
+
+      // Focus the input
+      setTimeout(() => tagRow.querySelector('.tag-text-input')?.focus(), 100);
+    }
+  }
+
+  function addCardTag(chip, tag) {
+    const tagRow = chip.closest('.tag-input-row');
+    const existing = (tagRow.dataset.cardTags || '').split(',').filter(Boolean);
+    if (existing.includes(tag)) return;
+    existing.push(tag);
+    tagRow.dataset.cardTags = existing.join(',');
+
+    // Replace the suggested chip with an added chip
+    const added = document.createElement('span');
+    added.className = 'tag-chip-added';
+    added.innerHTML = `${tag}<span class="x" onclick="removeCardTag(this, '${tag}')">&times;</span>`;
+    chip.replaceWith(added);
+
+    // Update card-tags display above footer
+    updateCardTagsDisplay(tagRow.closest('.conv-card'), existing);
+  }
+
+  function removeCardTag(x, tag) {
+    const tagRow = x.closest('.tag-input-row');
+    const existing = (tagRow.dataset.cardTags || '').split(',').filter(Boolean);
+    const idx = existing.indexOf(tag);
+    if (idx > -1) existing.splice(idx, 1);
+    tagRow.dataset.cardTags = existing.join(',');
+
+    // Remove the chip
+    x.closest('.tag-chip-added').remove();
+
+    // Add back as suggested
+    const input = tagRow.querySelector('.tag-text-input');
+    const suggested = document.createElement('button');
+    suggested.className = 'tag-chip-suggested';
+    suggested.textContent = tag;
+    suggested.onclick = () => addCardTag(suggested, tag);
+    tagRow.insertBefore(suggested, input);
+
+    updateCardTagsDisplay(tagRow.closest('.conv-card'), existing);
+  }
+
+  function handleTagInput(e, input) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const tag = input.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+      if (!tag) return;
+      input.value = '';
+
+      const tagRow = input.closest('.tag-input-row');
+      const existing = (tagRow.dataset.cardTags || '').split(',').filter(Boolean);
+      if (existing.includes(tag)) return;
+      existing.push(tag);
+      tagRow.dataset.cardTags = existing.join(',');
+
+      const added = document.createElement('span');
+      added.className = 'tag-chip-added';
+      added.innerHTML = `${tag}<span class="x" onclick="removeCardTag(this, '${tag}')">&times;</span>`;
+      tagRow.insertBefore(added, input);
+
+      updateCardTagsDisplay(tagRow.closest('.conv-card'), existing);
+    }
+  }
+
+  function updateCardTagsDisplay(card, tags) {
+    let display = card.querySelector('.card-tags');
+    const footer = card.querySelector('.card-footer');
+    if (tags.length === 0) {
+      if (display) display.remove();
+      return;
+    }
+    if (!display) {
+      display = document.createElement('div');
+      display.className = 'card-tags';
+      card.insertBefore(display, footer);
+    }
+    display.innerHTML = tags.map(t => `<span class="tag-chip-sm">${t}</span>`).join('');
+  }
+
+  // ─── Context Toggle (saved cards) ───
+  function toggleContext(toggle) {
+    toggle.classList.toggle('open');
+    const body = toggle.nextElementSibling;
+    body.classList.toggle('open');
+  }
+
+  // ─── Unsave from saved view ───
+  function unsaveCard(btn) {
+    const card = btn.closest('.saved-card');
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(-8px)';
+    card.style.transition = 'all 0.25s ease';
+    setTimeout(() => card.remove(), 250);
+  }
+
+  // ─── Nav toggle ───
+  let navOpen = false;
+
+  function toggleNav() {
+    navOpen = !navOpen;
+    document.getElementById('navExpanded').classList.toggle('open', navOpen);
+    document.getElementById('navBackdrop').classList.toggle('visible', navOpen);
+  }
+
+  function closeNav() {
+    navOpen = false;
+    document.getElementById('navExpanded').classList.remove('open');
+    document.getElementById('navBackdrop').classList.remove('visible');
+  }
+
+  // ─── Report reader ───
+  function openReader() {
+    document.getElementById('reportReader').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeReader() {
+    document.getElementById('reportReader').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('reportReader').classList.contains('open')) {
+        closeReader();
+      } else if (savedMode) {
+        toggleSavedView();
+      }
+    }
+  });
+
+  // ─── Streaming simulation ───
+  const streamText = " — specifically the terracotta, olive, and mustard choices and how they map to the component hierarchy. Your prototype HTML is ready to present. The AWS billing conversation from this morning might also come up — Sarah mentioned costs in the team channel.";
+  const streamTarget = document.getElementById('streamTarget').querySelector('p');
+  let charIndex = 0;
+
+  function typeNext() {
+    if (charIndex < streamText.length) {
+      streamTarget.textContent += streamText[charIndex];
+      charIndex++;
+      setTimeout(typeNext, 18 + Math.random() * 30);
+    } else {
+      const card = streamTarget.closest('.conv-card');
+      card.classList.remove('streaming');
+      const footer = document.createElement('div');
+      footer.className = 'card-footer';
+      footer.innerHTML = `
+        <span class="card-time">Just now</span>
+        <button class="save-btn" onclick="handleSave(this)" title="Save to documents">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+      `;
+      card.appendChild(footer);
+      // Add empty tag input row
+      const tagRow = document.createElement('div');
+      tagRow.className = 'tag-input-row';
+      tagRow.dataset.cardTags = '';
+      card.appendChild(tagRow);
+    }
+  }
+
+  setTimeout(typeNext, 1200);
+</script>
+
+</body>
+</html>

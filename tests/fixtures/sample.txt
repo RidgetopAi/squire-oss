@@ -1,0 +1,18 @@
+This is a sample text file for testing the document extraction system.
+
+It contains multiple paragraphs of text that can be used to verify
+that the extraction and chunking functionality works correctly.
+
+The Squire project is an AI memory system designed to help users
+manage and retrieve important information through natural language
+conversations. It uses embeddings and semantic search to find
+relevant memories and context.
+
+Key Features:
+- Document extraction from multiple formats (PDF, DOCX, TXT, MD)
+- Semantic chunking for RAG applications
+- Vector embeddings for similarity search
+- Living summaries that evolve over time
+
+This document should be extracted successfully and split into
+multiple chunks when using the chunking system.

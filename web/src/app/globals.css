@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+/* ============================================
+   SQUIRE - EARTHY WARM THEME
+   ============================================ */
+
+:root {
+  /* Core backgrounds */
+  --background: #1a1816;
+  --background-secondary: #201e1b;
+  --background-tertiary: #282524;
+  --foreground: #ede8e0;
+  --foreground-muted: #9e9488;
+
+  /* Primary brand color */
+  --primary: #c4694a;           /* Terracotta */
+  --primary-hover: #d47a5a;
+  --primary-glow: rgba(196, 105, 74, 0.3);
+
+  /* Accent colors */
+  --accent-olive: #7a8c5e;
+  --accent-mustard: #d4a843;
+  --accent-burnt-orange: #cc6b33;
+  --accent-burgundy: #8c3344;
+
+  /* Warm neutrals */
+  --taupe: #8a7e72;
+  --cream: #c4b49a;
+
+  /* Status colors */
+  --success: #7a8c5e;
+  --warning: #d4a843;
+  --error: #c4494a;
+  --info: #7a9c8e;
+
+  /* Glass effects */
+  --glass-bg: rgba(32, 30, 27, 0.85);
+  --glass-border: rgba(196, 168, 140, 0.07);
+  --glass-highlight: rgba(237, 232, 224, 0.03);
+
+  /* Shadows and glows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 1px rgba(196, 168, 140, 0.08), 0 0 50px -15px rgba(196, 168, 140, 0.06);
+
+  /* Animation durations */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+
+  /* Card styling */
+  --card-bg: #242120;
+  --card-bg-user: rgba(0, 0, 0, 0.18);
+  --card-border: rgba(196, 168, 140, 0.07);
+  --card-glow: 0 0 1px rgba(196, 168, 140, 0.08), 0 0 50px -15px rgba(196, 168, 140, 0.06);
+
+  /* Input */
+  --input-bg: #282524;
+}
+
+@theme inline {
+  /* Map CSS vars to Tailwind theme */
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-tertiary: var(--background-tertiary);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent-olive: var(--accent-olive);
+  --color-accent-mustard: var(--accent-mustard);
+  --color-accent-burnt-orange: var(--accent-burnt-orange);
+  --color-accent-burgundy: var(--accent-burgundy);
+
+  /* Backward-compatible aliases for old theme class names */
+  --color-accent-gold: var(--accent-mustard);
+  --color-accent-purple: var(--accent-burgundy);
+  --color-accent-magenta: var(--accent-burnt-orange);
+
+  --color-taupe: var(--taupe);
+  --color-cream: var(--cream);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+
+  /* Fonts */
+  --font-sans: var(--font-jakarta);
+  --font-serif: var(--font-instrument);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  /* Prevent native pull-to-refresh on iOS PWA */
+  overscroll-behavior-y: contain;
+}
+
+html {
+  /* Prevent native pull-to-refresh on iOS PWA */
+  overscroll-behavior-y: contain;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Glass morphism */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-subtle {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Card glow */
+.card-glow {
+  box-shadow: var(--card-glow);
+}
+
+/* Backward-compatible glow classes (mapped to earthy equivalents) */
+.glow-primary {
+  box-shadow: var(--shadow-glow);
+}
+
+.glow-gold {
+  box-shadow: var(--shadow-glow);
+}
+
+.glow-text-primary {
+  text-shadow: 0 0 8px var(--primary-glow);
+}
+
+.glow-text-gold {
+  text-shadow: 0 0 8px rgba(212, 168, 67, 0.3);
+}
+
+/* Neon border (now subtle warm border) */
+.neon-border {
+  border: 1px solid var(--primary);
+  box-shadow: 0 0 8px var(--primary-glow);
+}
+
+/* Warm text accents */
+.text-warm {
+  color: var(--cream);
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--duration-normal) ease-out;
+}
+
+/* Slide animations */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up var(--duration-normal) ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down var(--duration-normal) ease-out;
+}
+
+/* Pulse animation for active states */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--background-tertiary);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-muted);
+}
+
+/* Selection styling */
+::selection {
+  background: var(--primary);
+  color: var(--background);
+}
+
+/* Focus outline */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

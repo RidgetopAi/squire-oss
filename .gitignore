@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Data (local object storage)
+data/objects/
+storage/
+images/
+
+# Personal data imports
+*.jsonl
+claude-desktop-memories/
+
+# Windows zone identifiers
+*:Zone.Identifier
+
+# Test coverage
+coverage/
+debug-images/
+
+# Surveyor cache
+.surveyor/
+projects/
+cd

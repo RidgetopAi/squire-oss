@@ -1,0 +1,70 @@
+{
+  "name": "squire",
+  "version": "0.1.0",
+  "description": "AI memory system - memory that knows the user",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "squire": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:web": "cd web && pnpm build",
+    "dev": "tsx watch src/index.ts",
+    "dev:api": "tsx watch src/api/server.ts",
+    "dev:web": "cd web && pnpm dev",
+    "start": "node dist/index.js",
+    "start:api": "node dist/api/server.js",
+    "start:web": "cd web && pnpm start",
+    "cli": "tsx src/cli.ts",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "typecheck": "tsc --noEmit",
+    "typecheck:web": "cd web && pnpm type-check",
+    "clean": "rm -rf dist",
+    "test": "npx tsx --test tests/*.test.ts",
+    "test:extraction": "npx tsx --test tests/extraction.test.ts",
+    "test:chunking": "npx tsx --test tests/chunking.test.ts"
+  },
+  "keywords": [
+    "ai",
+    "memory",
+    "context",
+    "llm"
+  ],
+  "author": "RidgetopAI",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "glob": "^13.0.0",
+    "googleapis": "^169.0.0",
+    "gpt-tokenizer": "^3.4.0",
+    "mammoth": "^1.11.0",
+    "multer": "^1.4.5-lts.1",
+    "pdf-parse": "^2.4.5",
+    "pg": "^8.13.1",
+    "rrule": "^2.8.1",
+    "socket.io": "^4.8.3",
+    "tesseract.js": "^7.0.0",
+    "uuid": "^11.0.3",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "@types/uuid": "^10.0.0",
+    "@types/web-push": "^3.6.4",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
