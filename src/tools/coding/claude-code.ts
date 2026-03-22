@@ -11,7 +11,7 @@
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { existsSync, writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync } from 'fs';
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { ClaudeCodeArgs, ClaudeCodeResult } from './types.js';
 

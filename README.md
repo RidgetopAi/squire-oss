@@ -1,108 +1,259 @@
 # Squire
 
-**AI memory that knows the user**
+**AI memory that actually knows you.**
 
-Squire inverts the traditional approach to personal data. Instead of storing data about you for later retrieval, Squire gives AI genuine memory. The AI *knows* you—your patterns, priorities, relationships, and goals. Every conversation starts with context, not cold.
+Squire gives your AI assistant persistent, structured memory. Instead of starting every conversation from zero, the AI wakes up knowing your patterns, priorities, relationships, and goals — because Squire remembers them.
+
+It works like human memory: experiences flow in during the day, consolidation strengthens what matters overnight, and relevant context surfaces when needed. The result is an AI that doesn't just retrieve documents — it *understands* you.
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=next.js&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Active_Development-yellow)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
-## The Problem with AI Memory
+## Why Squire?
 
-Current AI assistants are amnesiacs. Every conversation starts from zero—they don't remember:
-- What you told them yesterday
-- The decision you made and why
-- Who Sarah is (your cofounder, not your sister)
-- That you work best in the morning but hate Mondays
+Most AI assistants are amnesiacs. Every conversation starts from scratch. RAG helps — but returning the top-N similar documents isn't the same as understanding someone.
 
-RAG-style retrieval helps, but it just returns the top-N similar documents. It doesn't *understand*.
+Squire takes a different approach:
 
-## The Squire Approach
+- **Memories are scored by importance** — not all information is equal. A life decision matters more than what you had for lunch.
+- **Beliefs are extracted and tracked** — "I work best in the morning" accumulates evidence over time, and conflicts are detected.
+- **Entities form a knowledge graph** — people, projects, places, and the relationships between them.
+- **Consolidation runs like sleep** — strengthening important memories, decaying trivial ones, and generating insights.
+- **Context is generated, not retrieved** — the Story Engine synthesizes narratives from multiple memory sources instead of dumping raw chunks.
 
-Squire is structured like human memory:
-
-**Daytime (Active)** — Memories flow in from multiple sources. Each receives a salience score (how important?) and emotional tags. Entities are extracted. Beliefs are identified.
-
-**Sleep (Consolidation)** — Periodic processing strengthens important memories, decays trivial ones, forms connections between concepts, and generates insights.
-
-**Morning (Context)** — Before any AI conversation, relevant context is injected. The AI "wakes up" informed about you—your recent commitments, ongoing projects, relationship dynamics.
+The AI doesn't search your data. It *knows* you.
 
 ---
 
-## Architecture
+## Quick Start
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         INPUT LAYER                              │
-│   Chat │ Voice │ Notes │ Calendar │ Documents │ API             │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       INGESTION LAYER                            │
-├──────────────────────────────────────────────────────────────────┤
-│  Embedding Generation    │  Salience Scoring                     │
-│  └── OpenAI/Local        │  └── Temporal, Relationship, Action   │
-│                          │  └── Self-reference, Explicit marking │
-│  Entity Extraction       │                                       │
-│  └── People, Places      │  Belief Extraction                    │
-│  └── Projects, Orgs      │  └── Values, Preferences              │
-│                          │  └── Self-knowledge, Predictions      │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      KNOWLEDGE LAYER                             │
-├──────────────────────────────────────────────────────────────────┤
-│  Memories               │  Living Summaries                      │
-│  └── Raw observations   │  └── Auto-updating category summaries  │
-│  └── Semantic vectors   │                                        │
-│                         │  Patterns                              │
-│  Entity Graph           │  └── Recurring behaviors               │
-│  └── Relationships      │  └── Temporal patterns                 │
-│  └── Co-occurrences     │                                        │
-│                         │  Insights                              │
-│  Beliefs                │  └── LLM-generated observations        │
-│  └── Evidence tracking  │  └── Priority-ranked                   │
-│  └── Conflict detection │                                        │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       OUTPUT LAYER                               │
-├──────────────────────────────────────────────────────────────────┤
-│  Story Engine               │  Context Injection                 │
-│  └── "Generate Not Retrieve"│  └── Profile-based (work/personal) │
-│  └── Biographical narratives│  └── Token-budgeted                │
-│  └── Graph traversal        │  └── Disclosure logging            │
-│                             │                                    │
-│  REST API (18+ endpoints)   │  WebSocket (real-time)             │
-└─────────────────────────────────────────────────────────────────┘
+### Option A: Interactive Setup (recommended)
+
+```bash
+git clone https://github.com/RidgetopAi/squire-oss.git
+cd squire-oss
+npm install
+
+npx tsx src/cli.ts setup
 ```
 
+The setup wizard walks you through everything: database, LLM provider, embedding provider, your identity, and initial memories. It takes about 5 minutes.
+
+### Option B: Manual Setup
+
+**1. Clone and install**
+
+```bash
+git clone https://github.com/RidgetopAi/squire-oss.git
+cd squire-oss
+npm install
+```
+
+**2. Start PostgreSQL** (requires Docker)
+
+```bash
+docker compose up -d
+```
+
+This starts PostgreSQL 16 with pgvector on port 5435.
+
+**3. Configure environment**
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your settings. At minimum you need:
+
+```bash
+# Database (default works with the Docker container above)
+DATABASE_URL=postgresql://squire:squire_dev@localhost:5435/squire
+
+# LLM — pick one provider
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Embeddings — Ollama (free, local) or OpenAI
+EMBED_PROVIDER=ollama
+EMBED_MODEL=nomic-embed-text
+EMBED_DIMENSION=768
+```
+
+If using Ollama for embeddings, [install Ollama](https://ollama.com) and pull the model:
+
+```bash
+ollama pull nomic-embed-text
+```
+
+If using OpenAI for embeddings instead:
+
+```bash
+EMBED_PROVIDER=openai
+EMBED_MODEL=text-embedding-3-small
+EMBED_DIMENSION=1536
+OPENAI_API_KEY=sk-...
+```
+
+**4. Run database migrations**
+
+```bash
+npm run db:migrate
+```
+
+**5. Start the server**
+
+```bash
+# API server (http://localhost:3000)
+npm run dev:api
+```
+
+**6. Start the web UI** (optional, separate terminal)
+
+```bash
+cd web && pnpm install && cd ..
+npm run dev:web
+# Opens at http://localhost:3001
+```
+
+### Option C: Full Docker Stack
+
+Uncomment the `api`, `web`, and optionally `ollama` services in `docker-compose.yml`, then:
+
+```bash
+cp .env.example .env
+# Edit .env with your API keys
+
+docker compose up -d
+```
+
+This runs everything in containers: PostgreSQL, API server, web frontend, and optionally Ollama.
+
 ---
 
-## Key Innovations
+## How It Works
 
-### Story Engine: "Generate Not Retrieve"
+```
+ YOU ──── Chat, Notes, Voice, Calendar, Documents ────┐
+                                                       ▼
+                                              ┌─────────────────┐
+                                              │    INGESTION     │
+                                              │                  │
+                                              │  Embeddings      │
+                                              │  Salience Score  │
+                                              │  Entity Extract  │
+                                              │  Belief Extract  │
+                                              └────────┬─────────┘
+                                                       ▼
+                                              ┌─────────────────┐
+                                              │    KNOWLEDGE     │
+                                              │                  │
+                                              │  Memories        │
+                                              │  Entity Graph    │
+                                              │  Beliefs         │
+                                              │  Patterns        │
+                                              │  Summaries       │
+                                              │  Insights        │
+                                              └────────┬─────────┘
+                                                       ▼
+                                              ┌─────────────────┐
+                                              │     OUTPUT       │
+                                              │                  │
+                                              │  Story Engine    │
+                                              │  Context Inject  │
+                                              │  REST API        │
+                                              │  WebSocket       │
+                                              └──────────────────┘
+```
 
-Unlike RAG, which returns top-N similar chunks, the Story Engine:
-1. Understands the *intent* behind your question
-2. Traverses the memory graph to gather evidence
-3. Synthesizes a coherent narrative from multiple sources
+**Ingestion** — Every input gets an embedding vector, a salience score (how important is this?), entity extraction (who and what is mentioned?), and belief extraction (what does this reveal about you?).
 
-Ask "What happened on my birthday last year?" and get a story, not a list of documents.
+**Knowledge** — Memories live in a PostgreSQL database with pgvector. They're connected by a graph of relationships — similarity, temporal proximity, causation. Living summaries auto-update as new information arrives. Patterns and insights emerge from consolidation.
 
-### Salience-First Design
+**Output** — The Story Engine generates coherent narratives from the memory graph (not just top-N retrieval). Context injection provides any AI with a profile-based briefing before a conversation starts.
 
-Not all memories are equal. Squire scores every memory on:
+For a deeper technical walkthrough, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-| Factor | Weight | Signal |
-|--------|--------|--------|
+---
+
+## Using Squire
+
+### Web UI
+
+The web dashboard at `http://localhost:3001` provides:
+
+- **Chat** — Conversational interface with full memory context
+- **Dashboard** — Overview of recent memories, beliefs, and activity
+- **Timeline** — Chronological view of all memories
+- **Graph** — Interactive entity relationship visualization
+- **Memory Village** — 3D WebGL visualization where memories become buildings in a medieval village
+- **Notes & Lists** — Structured knowledge management
+- **Commitments & Reminders** — Track promises and schedule reminders
+- **Documents** — Upload and process PDFs, DOCX, images (OCR)
+- **Calendar** — Google Calendar integration view
+- **Settings** — Manage integrations and preferences
+
+### CLI
+
+```bash
+# Store a memory
+npx squire observe "Had coffee with Sarah. She's leaving her job next month — thinking about starting a consultancy."
+
+# Search memories
+npx squire search "Sarah's career plans"
+
+# Generate context for an AI conversation
+npx squire context --profile work --query "project planning"
+
+# View what Squire believes about you
+npx squire beliefs list
+
+# Explore the entity graph
+npx squire graph neighbors "Sarah"
+
+# Check system health
+npx squire health
+
+# Run memory consolidation manually
+npx squire consolidate
+
+# View living summaries
+npx squire summaries
+
+# Set your identity
+npx squire identity set --name "Your Name"
+```
+
+### REST API
+
+The API server exposes 25 endpoints. Key ones:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /api/memories` | Store a new memory |
+| `GET /api/memories/search?q=...` | Semantic memory search |
+| `POST /api/context` | Generate context for AI injection |
+| `GET /api/entities` | List known entities (people, projects, etc.) |
+| `GET /api/beliefs` | View extracted beliefs |
+| `GET /api/graph/neighbors/:id` | Traverse the entity graph |
+| `POST /api/chat` | Send a message with memory-aware context |
+| `GET /api/health` | Server health check |
+
+Real-time updates are available via Socket.IO on the same port.
+
+---
+
+## Key Concepts
+
+### Salience Scoring
+
+Not all memories are equal. Every memory is scored on:
+
+| Factor | Weight | What it measures |
+|--------|--------|------------------|
 | Temporal relevance | 20% | Deadlines, dates, time-sensitivity |
 | Relationships | 20% | People mentioned, social context |
 | Action language | 20% | Decisions, commitments, changes |
@@ -110,188 +261,169 @@ Not all memories are equal. Squire scores every memory on:
 | Self-reference | 15% | Identity, feelings, personal growth |
 | Length/complexity | 10% | Detail richness |
 
-High-salience memories float to the top. Low-salience fades over time.
+High-salience memories surface first. Low-salience fades over time.
 
-### Belief Extraction & Tracking
+### Belief Extraction
 
-Squire extracts persistent beliefs from your memories:
+Squire identifies persistent beliefs from your memories:
 
-- **Values**: "I value honesty over diplomacy"
-- **Preferences**: "I prefer morning meetings"
-- **Self-knowledge**: "I work best under pressure"
-- **Predictions**: "This project will succeed because..."
-- **About people**: "Sarah is reliable under pressure"
+- **Values** — "I value honesty over diplomacy"
+- **Preferences** — "I prefer morning meetings"
+- **Self-knowledge** — "I work best under pressure"
+- **About people** — "Sarah is reliable under pressure"
+- **Predictions** — "This project will succeed because..."
 
-Beliefs accumulate evidence. Conflicts are detected. Confidence scores update as evidence strengthens or contradicts.
+Beliefs accumulate evidence over time. Conflicting beliefs are detected and flagged. Confidence scores adjust as evidence strengthens or contradicts.
 
-### Memory Village (3D Visualization)
+### Story Engine
 
-A WebGL-powered medieval village where memories become buildings:
+Traditional RAG returns the top-N similar chunks. The Story Engine does something different:
 
-- **Taverns** (pink): Social memories—friends, family, conversations
-- **Libraries** (blue): Learning—books, courses, discoveries
-- **Blacksmiths** (orange): Work—projects, deadlines, code
-- **Churches** (violet): Reflection—journaling, goals, insights
+1. Understands the *intent* behind the query
+2. Traverses the memory graph to gather relevant evidence
+3. Synthesizes a coherent narrative from multiple sources
+
+Ask "What happened on my birthday last year?" and get a story, not a list of database rows.
+
+### Memory Consolidation
+
+Like human sleep, consolidation periodically:
+
+- Strengthens frequently-reinforced memories
+- Decays unused, low-salience memories
+- Finds connections between concepts
+- Generates insights from patterns
+- Updates living summaries
+
+Run it manually with `npx squire consolidate` or let it run on a schedule.
+
+### Memory Village
+
+A WebGL-powered 3D visualization where your memories become buildings in a medieval village:
+
+- **Taverns** (pink) — Social memories: friends, family, conversations
+- **Libraries** (blue) — Learning: books, courses, discoveries
+- **Blacksmiths** (orange) — Work: projects, deadlines, code
+- **Churches** (violet) — Reflection: journaling, goals, insights
 
 Click a building to see light beams connecting related memories. Entities appear as villagers walking the streets.
 
 ---
 
-## Quick Start
+## Configuration
 
-### Prerequisites
-- Node.js 20+
-- PostgreSQL with pgvector extension
-- OpenAI API key (for embeddings and LLM)
+Squire is configured entirely through environment variables in `.env`. See [CONFIGURATION.md](docs/CONFIGURATION.md) for the complete reference.
 
-### Setup
+### LLM Providers
 
-```bash
-git clone https://github.com/RidgetopAi/squire-oss.git
-cd squire-oss
+| Provider | Config | Notes |
+|----------|--------|-------|
+| Anthropic Claude | `LLM_PROVIDER=anthropic` | Recommended. Requires `ANTHROPIC_API_KEY` |
+| Groq | `LLM_PROVIDER=groq` | Fast inference. Requires `GROQ_API_KEY` |
+| xAI Grok | `LLM_PROVIDER=xai` | Requires `XAI_API_KEY` |
+| Google Gemini | `LLM_PROVIDER=gemini` | Requires `GEMINI_API_KEY` |
+| Ollama | `LLM_PROVIDER=ollama` | Free, local. Requires [Ollama](https://ollama.com) running |
 
-# Install dependencies
-npm install
-cd web && pnpm install && cd ..
+### Embedding Providers
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your database and API credentials
+| Provider | Config | Notes |
+|----------|--------|-------|
+| Ollama | `EMBED_PROVIDER=ollama` | Free, local, private. Default. |
+| OpenAI | `EMBED_PROVIDER=openai` | Easy setup. Requires `OPENAI_API_KEY` |
 
-# Start PostgreSQL
-docker compose up -d
+### Optional Integrations
 
-# Run migrations
-npm run db:migrate
+All integrations are off by default and gracefully skip when unconfigured:
 
-# Start API server
-npm run dev:api      # Terminal 1 (http://localhost:4000)
+- **Google Calendar** — Sync events as memories. See [INTEGRATIONS.md](docs/INTEGRATIONS.md)
+- **Telegram** — Chat with Squire via Telegram bot
+- **Courier** — Proactive task reminders (opt-in via `COURIER_ENABLED=true`)
+- **Commune** — Multi-agent coordination (opt-in via `COMMUNE_ENABLED=true`)
+- **Goal Worker** — Autonomous goal execution (opt-in via `GOAL_WORKER_ENABLED=true`)
 
-# Start web UI
-npm run dev:web      # Terminal 2 (http://localhost:3000)
+---
+
+## Project Structure
+
+```
+squire-oss/
+├── src/
+│   ├── api/           # Express server, routes, Socket.IO handlers
+│   ├── cli/           # CLI setup wizard
+│   ├── cli.ts         # CLI command definitions (50+ commands)
+│   ├── config/        # Environment variable configuration
+│   ├── constants/     # LLM prompt templates
+│   ├── db/            # Database connection and migration runner
+│   ├── providers/     # LLM and embedding provider wrappers
+│   ├── services/      # Core business logic (100+ modules)
+│   └── tools/         # LLM tool definitions for function calling
+├── schema/            # 47 PostgreSQL migration files
+├── web/               # Next.js frontend (React 19, Three.js, TanStack Query)
+├── tests/             # Test suite
+├── docker-compose.yml # PostgreSQL + optional full stack
+├── Dockerfile         # API server container
+└── web/Dockerfile     # Frontend container
 ```
 
-### CLI Usage
-
-```bash
-# Store a memory
-npx squire observe "Had a great call with Sarah about the Q1 roadmap. She's excited about the AI features."
-
-# Search memories
-npx squire search "roadmap discussions"
-
-# Generate context for AI
-npx squire context --profile work --query "project planning"
-
-# View beliefs
-npx squire beliefs list
-
-# Explore the entity graph
-npx squire graph neighbors "Sarah"
-```
-
 ---
 
-## Technology Stack
+## Database
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| Backend | TypeScript, Node.js | Core services |
-| Database | PostgreSQL + pgvector | Memory storage, vector search |
-| Web UI | Next.js, React | Dashboard and visualization |
-| 3D | Three.js / WebGL | Memory Village visualization |
-| API | Express + Socket.IO | REST + real-time updates |
-| Documents | pdf-parse, mammoth, Tesseract.js | PDF, DOCX, OCR processing |
-| Calendar | Google Calendar API | External memory source |
-| Embeddings | OpenAI / local | Semantic vectors |
+Squire uses PostgreSQL with the pgvector extension for semantic vector search. The schema is managed through 47 migration files in `schema/`.
 
----
+Key tables:
 
-## Database Schema
-
-32 migrations defining:
-
-- **raw_observations** — Immutable input records
-- **memories** — Processed memories with embeddings and salience
-- **entities** — People, places, projects, organizations
-- **entity_mentions** — Links between memories and entities
-- **memory_edges** — Graph connections (similar, temporal, causal)
-- **living_summaries** — Auto-updating category summaries
-- **beliefs** — Extracted beliefs with evidence chains
-- **patterns** — Recurring behavioral patterns
-- **insights** — AI-generated observations
-- **active_research** — Gaps and questions to explore
-- **commitments** — Tracked promises and obligations
-- **notes / lists** — Structured knowledge
-- **document_chunks** — Processed document segments
-
----
-
-## API Endpoints
-
-| Route | Purpose |
+| Table | Purpose |
 |-------|---------|
-| `/api/memories` | CRUD for memories, search, bulk operations |
-| `/api/context` | Generate context packets for AI injection |
-| `/api/entities` | Entity management and graph queries |
-| `/api/beliefs` | Belief extraction, evidence, conflicts |
-| `/api/patterns` | Pattern detection and tracking |
-| `/api/insights` | AI-generated insights |
-| `/api/research` | Gaps, questions, active research |
-| `/api/graph` | Graph traversal, neighbors, paths |
-| `/api/chat` | Conversational interface |
-| `/api/commitments` | Commitment tracking |
-| `/api/reminders` | Reminder scheduling |
-| `/api/notes` | Note management |
-| `/api/lists` | List management |
-| `/api/documents` | Document processing |
-| `/api/calendar` | Google Calendar integration |
-| `/api/identity` | User identity profile |
+| `raw_observations` | Immutable input records |
+| `memories` | Processed memories with embeddings and salience scores |
+| `entities` | People, places, projects, organizations |
+| `entity_mentions` | Links between memories and entities |
+| `memory_edges` | Graph connections (similar, temporal, causal) |
+| `living_summaries` | Auto-updating category summaries |
+| `beliefs` | Extracted beliefs with evidence chains |
+| `patterns` | Recurring behavioral patterns |
+| `insights` | AI-generated observations |
+| `commitments` | Tracked promises and obligations |
+| `notes` | Structured notes linked to entities |
+| `document_chunks` | Processed document segments with embeddings |
 
 ---
 
-## Project Stats
+## Development
 
-- **~36,000 lines** of TypeScript
-- **32 database migrations**
-- **18+ REST API endpoints**
-- **15+ web components**
-- **3D WebGL visualization**
-- **Google Calendar integration**
-- **PDF/DOCX/OCR document processing**
+```bash
+# Type checking
+npm run typecheck          # Backend
+npm run typecheck:web      # Frontend
 
----
+# Run tests
+npm test
 
-## Design Philosophy
+# Build for production
+npm run build              # Backend (TypeScript → dist/)
+npm run build:web          # Frontend (Next.js build)
 
-> **"This is not user memory. This is AI memory that knows the user."**
-
-Traditional systems store data about users for later retrieval. Squire inverts this: the AI becomes the entity with memory. The AI knows its human partner—their patterns, priorities, emotional landscape, relationships, and goals.
-
-### Core Principles
-
-1. **AI-Agnostic** — Memory layer any AI can tap into (Claude, GPT, local models)
-2. **Local-First** — All core features work offline; cloud is backup, not compute
-3. **Salience-First** — Importance drives everything; not all memories are equal
-4. **Graph-Structured** — Relationships between concepts, not flat storage
-5. **Single Human** — One AI ↔ One Human; no multi-tenancy complexity
+# Development servers (with hot reload)
+npm run dev:api            # API on http://localhost:3000
+npm run dev:web            # Web on http://localhost:3001
+```
 
 ---
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Ensure TypeScript compiles (`npm run typecheck`)
-4. Run tests (`npm test`)
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Make your changes
+4. Ensure TypeScript compiles: `npm run typecheck`
+5. Run tests: `npm test`
+6. Submit a pull request
 
 ---
 
 ## License
 
-MIT License — See [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
----
-
-Built by [RidgetopAI](https://github.com/RidgetopAi) — giving AI the memory it deserves. Open source under MIT License.
+Built by [RidgetopAI](https://github.com/RidgetopAi). Open source under MIT.
