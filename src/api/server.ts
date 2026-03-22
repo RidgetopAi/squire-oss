@@ -30,6 +30,7 @@ import savedCardsRouter from './routes/saved-cards.js';
 import { initScheduler, shutdownScheduler } from '../services/scheduler.js';
 import { migrateFromPersonalitySummary } from '../services/identity.js';
 import { syncAllAccounts } from '../services/google/sync.js';
+import { isGoogleConfigured } from '../services/google/auth.js';
 import { startTelegramPoller, stopTelegramPoller } from '../services/telegram/index.js';
 import { startCourier, stopCourier } from '../services/courier/index.js';
 import { initCommuneScheduler, shutdownCommuneScheduler } from '../services/commune/index.js';
@@ -121,26 +122,30 @@ httpServer.listen(port, async () => {
   initScheduler();
   console.log(`Reminder scheduler started`);
 
-  // Start Google Calendar sync scheduler
-  const runCalendarSync = async () => {
-    try {
-      console.log('[CalendarSync] Starting sync...');
-      const results = await syncAllAccounts();
-      const accountCount = results.size;
-      let totalEvents = 0;
-      results.forEach((r) => { totalEvents += r.events.pulled; });
-      console.log(`[CalendarSync] Synced ${accountCount} account(s), ${totalEvents} events pulled`);
-    } catch (error) {
-      console.error('[CalendarSync] Sync failed:', error);
-    }
-  };
+  // Start Google Calendar sync scheduler (only if configured)
+  if (isGoogleConfigured()) {
+    const runCalendarSync = async () => {
+      try {
+        console.log('[CalendarSync] Starting sync...');
+        const results = await syncAllAccounts();
+        const accountCount = results.size;
+        let totalEvents = 0;
+        results.forEach((r) => { totalEvents += r.events.pulled; });
+        console.log(`[CalendarSync] Synced ${accountCount} account(s), ${totalEvents} events pulled`);
+      } catch (error) {
+        console.error('[CalendarSync] Sync failed:', error);
+      }
+    };
 
-  // Run initial sync after short delay (let server fully start)
-  setTimeout(runCalendarSync, 5000);
+    // Run initial sync after short delay (let server fully start)
+    setTimeout(runCalendarSync, 5000);
 
-  // Schedule periodic syncs
-  calendarSyncTimer = setInterval(runCalendarSync, CALENDAR_SYNC_INTERVAL_MS);
-  console.log(`Google Calendar sync scheduler started (every ${CALENDAR_SYNC_INTERVAL_MS / 60000} minutes)`);
+    // Schedule periodic syncs
+    calendarSyncTimer = setInterval(runCalendarSync, CALENDAR_SYNC_INTERVAL_MS);
+    console.log(`Google Calendar sync scheduler started (every ${CALENDAR_SYNC_INTERVAL_MS / 60000} minutes)`);
+  } else {
+    console.log('[Server] Google Calendar not configured, skipping sync');
+  }
 
   // Start Telegram bot poller (if configured)
   try {

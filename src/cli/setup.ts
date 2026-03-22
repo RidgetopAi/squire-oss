@@ -85,6 +85,7 @@ interface EnvConfig {
   embedModel: string;
   embedDimension: string;
   ollamaUrl: string;
+  openaiApiKey: string;
   port: string;
 }
 
@@ -169,17 +170,35 @@ async function configPhase(): Promise<boolean> {
   // Embedding
   const embedProvider = await choose(
     'Embedding provider:',
-    ['ollama'],
+    ['ollama', 'openai'],
     'ollama',
   );
-  const ollamaUrl = await ask('Ollama URL', 'http://localhost:11434');
 
-  const embedModel = await choose(
-    'Embedding model:',
-    ['nomic-embed-text', 'mxbai-embed-large'],
-    'nomic-embed-text',
-  );
-  const embedDimension = embedModel === 'mxbai-embed-large' ? '1024' : '768';
+  let ollamaUrl = 'http://localhost:11434';
+  let embedModel: string;
+  let embedDimension: string;
+  let openaiApiKey = '';
+
+  if (embedProvider === 'openai') {
+    openaiApiKey = await ask('OpenAI API key');
+    if (!openaiApiKey) {
+      warn('No API key provided — set OPENAI_API_KEY in .env later');
+    }
+    embedModel = await choose(
+      'OpenAI embedding model:',
+      ['text-embedding-3-small', 'text-embedding-3-large'],
+      'text-embedding-3-small',
+    );
+    embedDimension = embedModel === 'text-embedding-3-large' ? '3072' : '1536';
+  } else {
+    ollamaUrl = await ask('Ollama URL', 'http://localhost:11434');
+    embedModel = await choose(
+      'Embedding model:',
+      ['nomic-embed-text', 'mxbai-embed-large'],
+      'nomic-embed-text',
+    );
+    embedDimension = embedModel === 'mxbai-embed-large' ? '1024' : '768';
+  }
 
   // Database
   const databaseUrl = await ask(
@@ -200,6 +219,7 @@ async function configPhase(): Promise<boolean> {
     embedModel,
     embedDimension,
     ollamaUrl,
+    openaiApiKey,
     port,
   };
 
@@ -238,8 +258,17 @@ function writeEnvFile(path: string, c: EnvConfig): void {
     `EMBED_PROVIDER=${c.embedProvider}`,
     `EMBED_MODEL=${c.embedModel}`,
     `EMBED_DIMENSION=${c.embedDimension}`,
-    `OLLAMA_URL=${c.ollamaUrl}`,
   );
+
+  if (c.embedProvider === 'openai') {
+    if (c.openaiApiKey) {
+      lines.push(`OPENAI_API_KEY=${c.openaiApiKey}`);
+    } else {
+      lines.push('# OPENAI_API_KEY=your_key_here');
+    }
+  } else {
+    lines.push(`OLLAMA_URL=${c.ollamaUrl}`);
+  }
 
   writeFileSync(path, lines.join('\n') + '\n');
 }
