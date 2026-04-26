@@ -24,9 +24,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:web": "cd web && pnpm type-check",
     "clean": "rm -rf dist",
-    "test": "npx tsx --test tests/*.test.ts",
-    "test:extraction": "npx tsx --test tests/extraction.test.ts",
-    "test:chunking": "npx tsx --test tests/chunking.test.ts"
+    "test": "npx tsx --test tests/*.test.ts"
   },
   "keywords": [
     "ai",
