@@ -53,20 +53,6 @@ export const goalWorkerTask: CourierTask = {
       // 2. Mark as being worked on
       await markGoalWorkedOn(goal.id);
 
-      // 2.5. Ensure Mandrel is on the right project
-      try {
-        const res = await fetch(`${config.mandrel.baseUrl}/mcp/tools/project_switch`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ arguments: { project: 'squire-agent' } }),
-        });
-        if (res.ok) {
-          console.log('[GoalWorker] Mandrel project set to squire-agent');
-        }
-      } catch (e) {
-        console.warn('[GoalWorker] Could not switch Mandrel project:', e);
-      }
-
       // 3. Build the goal-focused prompt
       const previousNotes = goal.notes.length > 0
         ? '\n\nPrevious progress notes:\n' + goal.notes.map(n => `- [${n.timestamp}] ${n.content}`).join('\n')
@@ -82,21 +68,16 @@ ${previousNotes}
 
 ## Instructions
 1. Think about what progress you can make on this goal right now
-2. Use your available tools (coding tools, search, scratchpad, notes, Mandrel) to make concrete progress
+2. Use your available tools (coding tools, search, scratchpad, notes) to make concrete progress
 3. Be practical - do real work, not just planning
 4. When done, use squire_goal_note to log what you accomplished
 5. If the goal is complete, use squire_goal_update to mark it completed with an outcome
-
-## Mandrel Project
-- Mandrel has been set to 'squire-agent' by default
-- If this goal relates to a different project (e.g. thucydides), switch with project_switch first
 
 ## Guardrails
 - You have up to 15 tool calls
 - Focus on this one goal only
 - Be conservative with file modifications - prefer drafting in your scratchpad
 - For significant code changes, note what you'd change rather than changing it directly
-- Store anything valuable to Mandrel using context_store
 
 Begin working on your goal now.`;
 

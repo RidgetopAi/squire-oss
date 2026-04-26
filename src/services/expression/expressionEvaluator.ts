@@ -47,7 +47,7 @@ SAFE — almost everything should be SAFE, including:
 - Who they are: name, age, family, relationships, pets, location
 - People in their life and details about them (health, jobs, personalities)
 - Their work: job role, clients, deals, industry knowledge, business contacts
-- Projects they built or are building (Squire, Mandrel, Thucydides, Ridge-Control, Forge, Cilo, etc.)
+- Projects they built or are building
 - Technical interests, tools they use, architecture decisions
 - Goals, plans, ambitions, ideas they want to explore
 - Opinions, preferences, communication style, values

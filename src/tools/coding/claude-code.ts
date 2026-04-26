@@ -228,9 +228,6 @@ Use this for:
 - Running tests and builds
 - Any task requiring extensive file operations
 
-Claude Code has access to Mandrel for context storage - it will persist important
-decisions, completions, and context automatically.
-
 Each call generates a fresh session. To resume a previous session, pass a valid UUID as sessionId.`,
   parameters: {
     type: 'object',

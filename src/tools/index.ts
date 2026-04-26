@@ -215,7 +215,6 @@ import { tools as commitmentTools } from './commitments.js';
 import { tools as reminderTools } from './reminders.js';
 import { tools as codingTools } from './coding/index.js';
 import { tools as stewardTools } from './steward.js';
-import { tools as mandrelTools } from './mandrel/index.js';
 import { tools as memoryTools } from './memory/index.js';
 import { tools as emailTools } from './email/index.js';
 import { tools as squireEmailTools } from './squire-email/index.js';
@@ -243,7 +242,6 @@ const allToolSpecs: ToolSpec[] = [
   ...reminderTools,
   ...codingTools,
   ...stewardTools,
-  ...mandrelTools,
   ...memoryTools,
   ...emailTools,
   ...squireEmailTools,

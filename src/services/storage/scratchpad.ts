@@ -2,7 +2,7 @@
  * Scratchpad Service
  *
  * Short-term working memory for Squire - threads, observations, questions, ideas, context.
- * Different from notes (user-authored) and Mandrel (project context).
+ * Different from notes, which are user-authored.
  */
 
 import { pool } from '../../db/pool.js';

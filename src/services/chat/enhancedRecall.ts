@@ -308,31 +308,21 @@ interface CategoryRule {
 
 export const CATEGORY_RULES: CategoryRule[] = [
   {
-    // Flooring sales activity
-    trigger: new Set(['pallet', 'ironp', 'roll', 'pad', 'prosource', 'carpet', 'adura', 'display', 'dealer', 'floor']),
-    bridgeTerms: ['floor', 'sale', 'deal', 'distributor', 'pallet', 'sell'],
-  },
-  {
     // Coding / dev work
     trigger: new Set(['deploy', 'code', 'bug', 'fix', 'repo', 'commit', 'merge', 'branch', 'api']),
-    bridgeTerms: ['mandrel', 'squire', 'agent', 'tool'],
+    bridgeTerms: ['agent', 'tool', 'service'],
   },
   {
     // People/meetings
     trigger: new Set(['appoint', 'meet', 'call', 'visit']),
-    bridgeTerms: ['deal', 'sale', 'floor', 'contact'],
+    bridgeTerms: ['contact'],
   },
 ];
 
-/** Entity sets that trigger domain bridge terms. */
-export const FLOORING_ENTITIES = new Set([
-  'carpet village', 'adura', 'march madness', 'march padness',
-  'prosource', 'carpet land', 'carpet land south', 'fci', 'floored', 'ironply',
-]);
-
-export const TECH_ENTITIES = new Set([
-  'mandrel', 'squire', 'claude', 'claude code', 'forge',
-]);
+/** Entity sets that trigger domain bridge terms. Empty by default — domain entities
+ *  are highly user-specific (occupation, projects, contacts) and should be configured
+ *  per deployment if used. */
+export const TECH_ENTITIES = new Set<string>([]);
 
 /**
  * Get bridge terms based on input terms matching category rules.
@@ -359,12 +349,6 @@ export function getTermBridgeTerms(inputTerms: string[]): string[] {
  */
 export function getEntityBridgeTerms(inputEntities: Set<string>): string[] {
   const terms: string[] = [];
-  for (const e of inputEntities) {
-    if (FLOORING_ENTITIES.has(e)) {
-      terms.push('floor', 'sale', 'deal', 'distributor', 'sell', 'pallet');
-      break;
-    }
-  }
   for (const e of inputEntities) {
     if (TECH_ENTITIES.has(e)) {
       terms.push('agent', 'tool', 'memory', 'system');

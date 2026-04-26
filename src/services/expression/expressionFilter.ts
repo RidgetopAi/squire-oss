@@ -63,15 +63,6 @@ export function shouldSkipFilter(content: string): boolean {
     return true;
   }
 
-  // Projects the user built or cares about - always safe
-  const projectNames = [
-    'squire', 'mandrel', 'thucydides', 'ridge-control', 'forge', 'cilo',
-    'sirk', 'polymarket',
-  ];
-  if (projectNames.some((p) => lower.includes(p)) && !isReminder(lower)) {
-    return true;
-  }
-
   // Plans, goals, ambitions - always safe
   const planPatterns = [
     /\buser\s+(wants?|plans?|aims?|hopes?|intends?)\s+to\s+(?!be reminded)/i,
@@ -109,11 +100,6 @@ export function shouldSkipFilter(content: string): boolean {
   }
 
   return false;
-}
-
-/** Helper: check if content looks like a reminder */
-function isReminder(lower: string): boolean {
-  return /\breminder\b/.test(lower) || /\bremind(ed)?\s+(me|the user)\b/.test(lower);
 }
 
 /**

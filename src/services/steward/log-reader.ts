@@ -1,61 +1,12 @@
 import { execSync } from 'child_process';
-import { readFileSync, existsSync } from 'fs';
 import type { ErrorEntry } from './types.js';
 
 // ========================================
 // Log Reading
 // ========================================
 
-const MANDREL_LOG_PATH = process.env['MANDREL_LOG_PATH'] || '/var/log/mandrel-mcp.log';
 const MAX_LOG_LINES = 100;
 const MAX_ERRORS = 10;
-
-/**
- * Read recent errors from Mandrel MCP log file
- */
-function readMandrelLog(): ErrorEntry[] {
-  const errors: ErrorEntry[] = [];
-
-  try {
-    if (!existsSync(MANDREL_LOG_PATH)) {
-      return errors;
-    }
-
-    const content = readFileSync(MANDREL_LOG_PATH, 'utf8');
-    const lines = content.split('\n').slice(-MAX_LOG_LINES);
-
-    for (const line of lines) {
-      if (!line.trim()) continue;
-
-      // Look for common error patterns
-      const isError =
-        line.toLowerCase().includes('error') ||
-        line.toLowerCase().includes('exception') ||
-        line.toLowerCase().includes('failed') ||
-        line.toLowerCase().includes('fatal');
-
-      if (isError) {
-        // Try to parse timestamp from common log formats
-        const timestampMatch = line.match(/^\[?(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2})/);
-        const timestamp = timestampMatch && timestampMatch[1]
-          ? new Date(timestampMatch[1])
-          : new Date();
-
-        errors.push({
-          timestamp,
-          source: 'mandrel-mcp.log',
-          message: line.trim(),
-        });
-
-        if (errors.length >= MAX_ERRORS) break;
-      }
-    }
-  } catch {
-    // Silently fail if we can't read the log file
-  }
-
-  return errors;
-}
 
 /**
  * Read recent errors from journalctl for squire service
@@ -124,13 +75,11 @@ function readJournalctlErrors(): ErrorEntry[] {
  * Get all recent errors from log sources
  */
 export async function getRecentErrors(): Promise<ErrorEntry[]> {
-  const mandrelErrors = readMandrelLog();
   const journalErrors = readJournalctlErrors();
 
-  // Combine and sort by timestamp (newest first)
-  const allErrors = [...mandrelErrors, ...journalErrors];
-  allErrors.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  // Sort by timestamp (newest first)
+  journalErrors.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
   // Return top MAX_ERRORS
-  return allErrors.slice(0, MAX_ERRORS);
+  return journalErrors.slice(0, MAX_ERRORS);
 }

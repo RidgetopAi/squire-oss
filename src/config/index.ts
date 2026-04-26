@@ -76,9 +76,6 @@ export const config = {
       'chown -R',
     ],
   },
-  mandrel: {
-    baseUrl: optional('MANDREL_URL', 'http://localhost:8080'),
-  },
   routing: {
     enabled: optional('ROUTING_ENABLED', 'true') === 'true',
     defaultTier: optional('ROUTING_DEFAULT_TIER', 'smart') as 'smart' | 'fast',
