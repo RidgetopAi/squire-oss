@@ -155,6 +155,11 @@ function getSocket(): Socket {
     const url = typeof window !== 'undefined'
       ? window.location.origin
       : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
+    // NEXT_PUBLIC_SQUIRE_API_KEY mirrors SQUIRE_API_KEY. If the backend
+    // has auth enabled, the browser must present this token in the
+    // socket handshake. Empty string is fine — the server treats no-key
+    // mode as dev-only (see src/api/middleware/auth.ts and server.ts).
+    const token = process.env.NEXT_PUBLIC_SQUIRE_API_KEY ?? '';
     socket = io(url, {
       autoConnect: false,
       reconnection: true,
@@ -162,6 +167,7 @@ function getSocket(): Socket {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 10000,
       timeout: 10000,
+      auth: token ? { token } : undefined,
     });
   }
   return socket;

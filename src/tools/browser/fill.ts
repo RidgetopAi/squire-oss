@@ -16,7 +16,9 @@ async function browserFill(args: BrowserFillArgs): Promise<string> {
     return 'Error: text is required.';
   }
 
-  const result = await execBrowser(['fill', args.ref, JSON.stringify(args.text)]);
+  // execBrowser uses execFile with shell:false; pass text raw — no
+  // shell-quoting needed (and JSON.stringify would mangle the value).
+  const result = await execBrowser(['fill', args.ref, String(args.text)]);
   return result;
 }
 

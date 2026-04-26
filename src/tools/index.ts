@@ -232,7 +232,8 @@ import { tools as sandboxTools } from './sandbox.js';
 import { tools as jobTools } from './jobs.js';
 import { tools as browserTools } from './browser/index.js';
 
-const allToolSpecs: ToolSpec[] = [
+// Always-on tools — safe for any deployment.
+const safeToolSpecs: ToolSpec[] = [
   ...timeTools,
   ...notesTools,
   ...listsTools,
@@ -240,7 +241,6 @@ const allToolSpecs: ToolSpec[] = [
   ...calendarTools,
   ...commitmentTools,
   ...reminderTools,
-  ...codingTools,
   ...stewardTools,
   ...memoryTools,
   ...emailTools,
@@ -255,10 +255,38 @@ const allToolSpecs: ToolSpec[] = [
   ...continuityTools,
   ...pdfTools,
   ...scoutTools,
-  ...sandboxTools,
   ...jobTools,
-  ...browserTools,
 ];
+
+// Dangerous tools — gated behind SQUIRE_ENABLE_DANGEROUS_TOOLS=true.
+//
+// These tools spawn child processes with prompt-derived arguments, can
+// mutate the host file system, fetch arbitrary URLs, or shell out. A
+// successful prompt-injection attack against any LLM context (a memory,
+// a document, an email, a web page fetched as RAG) would let the
+// attacker drive these tools, escalating to remote code execution on
+// the operator's machine.
+//
+// Default OFF. Operators who understand the threat can opt in by
+// setting SQUIRE_ENABLE_DANGEROUS_TOOLS=true in .env. The README and
+// SECURITY.md document the consequences.
+const dangerousToolSpecs: ToolSpec[] = [
+  ...codingTools,   // bash, claude_code, file_read/write/edit
+  ...sandboxTools,  // ephemeral sandbox + Claude Code dispatch
+  ...browserTools,  // playwright-cli driven browser automation
+];
+
+const dangerousEnabled = process.env.SQUIRE_ENABLE_DANGEROUS_TOOLS === 'true';
+
+const allToolSpecs: ToolSpec[] = dangerousEnabled
+  ? [...safeToolSpecs, ...dangerousToolSpecs]
+  : safeToolSpecs;
+
+if (!dangerousEnabled) {
+  console.log(
+    `[Tools] Dangerous tools disabled (set SQUIRE_ENABLE_DANGEROUS_TOOLS=true to enable bash, claude_code, sandbox, browser_*).`
+  );
+}
 
 for (const spec of allToolSpecs) {
   registerTool(spec.name, spec.description, spec.parameters, spec.handler);

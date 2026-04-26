@@ -4,12 +4,20 @@
  * Shared utility for running playwright-cli commands.
  * All browser tools shell out to playwright-cli which manages
  * its own daemon session with proper timeout handling.
+ *
+ * SECURITY: every callsite passes args derived from LLM-generated
+ * tool calls. We use execFile (not exec) and shell: false so that
+ * arguments are passed directly to the playwright-cli process —
+ * no shell parsing, no $(...) expansion, no backticks, no IFS
+ * splitting, no globbing. A previously-vulnerable version did
+ * `exec(\`playwright-cli ${args.join(' ')}\`)` which let a URL
+ * like `https://x.com/$(id)` execute arbitrary shell commands.
  */
 
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 /** Default timeout for browser commands (30 seconds) */
 const BROWSER_TIMEOUT_MS = 30_000;
@@ -25,13 +33,11 @@ export async function execBrowser(
   args: string[],
   timeout = BROWSER_TIMEOUT_MS
 ): Promise<string> {
-  const command = `playwright-cli ${args.join(' ')}`;
-
   try {
-    const { stdout, stderr } = await execAsync(command, {
+    const { stdout, stderr } = await execFileAsync('playwright-cli', args, {
       timeout,
       maxBuffer: MAX_OUTPUT_BYTES,
-      shell: '/bin/bash',
+      shell: false,
       env: {
         ...process.env,
         LANG: 'en_US.UTF-8',

@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config } from '../config/index.js';
 import { registerSocketHandlers, setSocketServer } from './socket/index.js';
-import { apiKeyAuth } from './middleware/auth.js';
+import { apiKeyAuth, verifyApiKey } from './middleware/auth.js';
 import memoriesRouter from './routes/memories.js';
 import healthRouter from './routes/health.js';
 import contextRouter from './routes/context.js';
@@ -42,6 +42,26 @@ import { closePool } from '../db/pool.js';
 const CALENDAR_SYNC_INTERVAL_MS = parseInt(process.env['CALENDAR_SYNC_INTERVAL_MS'] || '900000', 10);
 let calendarSyncTimer: NodeJS.Timeout | null = null;
 
+// === Production safety checks ===
+// In production, refuse to start without an API key or with a localhost CORS
+// origin. Both are footguns: missing apiKey leaves every endpoint open;
+// localhost CORS in production usually means the operator forgot to set the
+// real frontend origin.
+if (process.env.NODE_ENV === 'production') {
+  if (!config.security.apiKey) {
+    throw new Error(
+      'Refusing to start: SQUIRE_API_KEY is required in production. ' +
+      'Generate one with `openssl rand -hex 32` and set it in your .env.'
+    );
+  }
+  if (!config.server.corsOrigin || config.server.corsOrigin.includes('localhost')) {
+    throw new Error(
+      'Refusing to start: CORS_ORIGIN must be set to your frontend origin ' +
+      'in production (not localhost). Example: CORS_ORIGIN=https://app.example.com'
+    );
+  }
+}
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -56,6 +76,23 @@ const io = new SocketIOServer(httpServer, {
   // Mobile browsers throttle JS during streaming, causing delayed pong responses
   pingTimeout: 60000,    // 60s (default 20s) — time to wait for pong
   pingInterval: 30000,   // 30s (default 25s) — interval between pings
+});
+
+// Socket.IO authentication. Mirrors the REST apiKeyAuth: if SQUIRE_API_KEY
+// is set, every connecting socket must present it via either
+//   handshake.auth = { token: '<key>' }
+// or
+//   handshake.headers['x-api-key'] = '<key>'
+// In dev mode (no key configured), connections are accepted unconditionally.
+io.use((socket, next) => {
+  const auth = socket.handshake.auth as { token?: unknown; apiKey?: unknown } | undefined;
+  const headerKey = socket.handshake.headers['x-api-key'];
+  const candidate = (auth?.token ?? auth?.apiKey ?? headerKey) as unknown;
+  if (verifyApiKey(candidate)) {
+    next();
+  } else {
+    next(new Error('unauthorized'));
+  }
 });
 
 // Register Socket.IO event handlers
@@ -91,8 +128,11 @@ const chatLimiter = rateLimit({
 // Apply general rate limit to all API routes
 app.use('/api', generalLimiter);
 
-// Middleware
-app.use(express.json({ limit: '5mb' }));
+// Middleware. Tight JSON body cap — large file uploads go through
+// the multer-backed routes (e.g. /api/objects, /api/documents) which
+// have their own size limits and streaming. 1MB is plenty for normal
+// API requests and shrinks the rate-limit×size DoS amplifier.
+app.use(express.json({ limit: '1mb' }));
 
 // Health check - no auth required (for monitoring)
 app.use('/api/health', healthRouter);

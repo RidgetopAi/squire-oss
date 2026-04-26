@@ -6,6 +6,7 @@
  */
 
 import type { ToolHandler, ToolSpec } from './types.js';
+import { assertPublicUrl } from '../utils/url-safety.js';
 
 // === TYPES ===
 
@@ -108,6 +109,12 @@ async function fetchUrl(args: FetchUrlArgs): Promise<string> {
 
   if (!url || url.trim().length === 0) {
     return 'Error: URL is required.';
+  }
+
+  try {
+    await assertPublicUrl(url.trim());
+  } catch (err) {
+    return `Error: ${err instanceof Error ? err.message : String(err)}`;
   }
 
   try {

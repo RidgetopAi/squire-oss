@@ -7,20 +7,28 @@
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { BrowserNavigateArgs } from './types.js';
 import { execBrowser } from './exec.js';
+import { assertPublicUrl } from '../../utils/url-safety.js';
 
 async function browserNavigate(args: BrowserNavigateArgs): Promise<string> {
   if (!args.url) {
     return 'Error: url is required';
   }
 
-  // Basic URL validation
+  // Basic URL validation + SSRF guard (rejects loopback, RFC1918,
+  // link-local, cloud-metadata, file://, etc.).
   try {
     new URL(args.url);
   } catch {
     return `Error: Invalid URL "${args.url}". Must be a full URL (e.g., https://example.com)`;
   }
 
-  const result = await execBrowser(['open', JSON.stringify(args.url)]);
+  try {
+    await assertPublicUrl(args.url);
+  } catch (err) {
+    return `Error: ${err instanceof Error ? err.message : String(err)}`;
+  }
+
+  const result = await execBrowser(['open', args.url]);
   return `Navigated to ${args.url}\n\n${result}\n\nUse browser_snapshot to see the page content and element refs.`;
 }
 

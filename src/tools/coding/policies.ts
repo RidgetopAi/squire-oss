@@ -35,24 +35,32 @@ export function resolvePath(
 }
 
 /**
- * Check if a path contains path traversal attempts.
- * This is a basic security check - we're permissive but not naive.
+ * Check if a path escapes the configured working directory.
  *
- * @param inputPath - The path to check
- * @returns true if path traversal is detected
+ * Resolves the input against config.coding.workingDirectory, then
+ * verifies the resolved absolute path stays inside the working dir.
+ * `..` segments that resolve safely (e.g. `subdir/../file.ts`) are
+ * allowed; only traversal that lands outside the working dir is
+ * flagged.
+ *
+ * @param inputPath - The path to check (relative or absolute)
+ * @param workingDir - Base working directory (defaults to config)
+ * @returns true if the path resolves outside the working directory
  */
-export function isPathTraversal(inputPath: string): boolean {
-  // Normalize and check for .. that escapes
-  const normalized = path.normalize(inputPath);
+export function isPathTraversal(
+  inputPath: string,
+  workingDir: string = config.coding.workingDirectory,
+): boolean {
+  const resolved = resolvePath(inputPath, workingDir);
+  const normalizedRoot = path.resolve(workingDir);
+  const relative = path.relative(normalizedRoot, resolved);
 
-  // Check for obvious traversal patterns
-  if (normalized.includes('..')) {
-    // This is actually fine in many cases, but we can flag it
-    // For now, we're permissive - just log a warning
-    console.warn(`Path contains '..': ${inputPath}`);
+  // Empty relative = same dir (allowed). Starts with `..` = escaped.
+  // Absolute relative path (Windows D:\... etc.) = different drive.
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    return true;
   }
-
-  return false; // Permissive - allow all paths
+  return false;
 }
 
 /**
