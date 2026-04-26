@@ -1,8 +1,8 @@
 import { pool } from '../db/pool.js';
 import { generateEmbedding } from '../providers/embeddings.js';
-import { calculateSalience } from './salience.js';
-import { extractAndStoreEntities } from './entities.js';
-import { Memory } from './memories.js';
+import { calculateSalience } from './analytics/salience.js';
+import { extractAndStoreEntities } from './knowledge/entities.js';
+import { Memory } from './knowledge/memories.js';
 
 export interface ImportMemory {
   content: string;

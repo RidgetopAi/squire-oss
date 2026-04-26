@@ -57,9 +57,9 @@ export interface StateSnapshotRow {
 export interface TrendSummaryRow {
   period_type: string;
   period_end: Date;
-  stress_trend: string | null;
-  energy_trend: string | null;
-  motivation_trend: string | null;
+  stress_trend: number | string | null;
+  energy_trend: number | string | null;
+  motivation_trend: number | string | null;
   avg_stress: number | null;
   avg_energy: number | null;
   avg_motivation: number | null;

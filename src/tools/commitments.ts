@@ -11,12 +11,12 @@ import {
   findMatchingCommitments,
   type Commitment,
   type ResolutionType,
-} from '../services/commitments.js';
+} from '../services/planning/commitments.js';
 import {
   listReminders,
   markReminderAcknowledged,
   type Reminder,
-} from '../services/reminders.js';
+} from '../services/planning/reminders.js';
 import { pool } from '../db/pool.js';
 import { config } from '../config/index.js';
 import type { ToolHandler, ToolSpec } from './types.js';

@@ -34,7 +34,7 @@ import {
   askDocument,
   getCacheStats as getEphemeralCacheStats,
 } from '../../services/documents/index.js';
-import { getObjectById, createObject } from '../../services/objects.js';
+import { getObjectById, createObject } from '../../services/storage/objects.js';
 import { pool } from '../../db/pool.js';
 
 const router = Router();

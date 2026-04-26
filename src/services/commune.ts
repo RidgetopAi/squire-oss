@@ -9,8 +9,8 @@
 
 import { pool } from '../db/pool.js';
 import { config } from '../config/index.js';
-import { listEntries as listScratchpadEntries } from './scratchpad.js';
-import { getUpcomingCommitments } from './commitments.js';
+import { listEntries as listScratchpadEntries } from './storage/scratchpad.js';
+import { getUpcomingCommitments } from './planning/commitments.js';
 import { sendMessage as sendTelegramMessage, isConfigured as isTelegramConfigured } from './telegram/client.js';
 import { AgentEngine } from './agent/engine.js';
 import { getToolDefinitions } from '../tools/index.js';
@@ -444,6 +444,7 @@ export async function attemptOutreach(): Promise<{
   const engine = new AgentEngine({
     conversationId: `commune-${Date.now()}`,
     maxTurns: 8,
+    tier: 'fast',
     systemPrompt: COMMUNE_SYSTEM_PROMPT,
     tools: getCommuneTools(),
   });

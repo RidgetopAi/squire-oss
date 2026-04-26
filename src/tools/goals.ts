@@ -12,7 +12,7 @@ import {
   addGoalNote,
   type GoalType,
   type GoalStatus,
-} from '../services/goals.js';
+} from '../services/planning/goals.js';
 import type { ToolHandler, ToolSpec } from './types.js';
 
 // =============================================================================

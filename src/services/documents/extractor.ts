@@ -20,7 +20,7 @@ import { docxExtractor } from './docxExtractor.js';
 import { textExtractor } from './textExtractor.js';
 import { csvExtractor } from './csvExtractor.js';
 import { ocrExtractor } from './ocrExtractor.js';
-import { getObjectById, getObjectData } from '../objects.js';
+import { getObjectById, getObjectData } from '../storage/objects.js';
 
 /**
  * Registry of all available extractors

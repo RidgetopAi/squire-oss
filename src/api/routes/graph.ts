@@ -11,9 +11,9 @@ import {
   getGraphStats,
   getFullGraphVisualization,
   type EntityNeighbor,
-} from '../../services/graph.js';
-import { getEntity } from '../../services/entities.js';
-import { EdgeType } from '../../services/edges.js';
+} from '../../services/knowledge/graph.js';
+import { getEntity } from '../../services/knowledge/entities.js';
+import { EdgeType } from '../../services/knowledge/edges.js';
 
 const router = Router();
 

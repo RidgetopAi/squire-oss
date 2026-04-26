@@ -17,7 +17,7 @@ import {
   type InsightPriority,
   type InsightStatus,
   type SourceType,
-} from '../../services/insights.js';
+} from '../../services/knowledge/insights.js';
 
 const router = Router();
 

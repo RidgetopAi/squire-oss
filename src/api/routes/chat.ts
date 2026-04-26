@@ -6,7 +6,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { chat, chatSimple, type ChatMessage, type ChatRequest } from '../../services/chat.js';
+import { chat, chatSimple, type ChatMessage, type ChatRequest } from '../../services/chat/chat.js';
 import { checkLLMHealth, getLLMInfo, type ImageContent } from '../../providers/llm.js';
 import {
   createConversation,
@@ -16,7 +16,7 @@ import {
   updateConversationTitle,
   getMessages,
   getRecentConversationWithMessages,
-} from '../../services/conversations.js';
+} from '../../services/chat/conversations.js';
 
 const router = Router();
 

@@ -215,7 +215,7 @@ import { tools as commitmentTools } from './commitments.js';
 import { tools as reminderTools } from './reminders.js';
 import { tools as codingTools } from './coding/index.js';
 import { tools as stewardTools } from './steward.js';
-
+import { tools as mandrelTools } from './mandrel/index.js';
 import { tools as memoryTools } from './memory/index.js';
 import { tools as emailTools } from './email/index.js';
 import { tools as squireEmailTools } from './squire-email/index.js';
@@ -227,6 +227,11 @@ import { tools as reportTools } from './report.js';
 import { tools as pageTools } from './page.js';
 import { tools as goalTools } from './goals.js';
 import { tools as continuityTools } from './continuity.js';
+import { tools as pdfTools } from './pdf.js';
+import { tools as scoutTools } from './scout.js';
+import { tools as sandboxTools } from './sandbox.js';
+import { tools as jobTools } from './jobs.js';
+import { tools as browserTools } from './browser/index.js';
 
 const allToolSpecs: ToolSpec[] = [
   ...timeTools,
@@ -238,7 +243,7 @@ const allToolSpecs: ToolSpec[] = [
   ...reminderTools,
   ...codingTools,
   ...stewardTools,
-
+  ...mandrelTools,
   ...memoryTools,
   ...emailTools,
   ...squireEmailTools,
@@ -250,6 +255,11 @@ const allToolSpecs: ToolSpec[] = [
   ...pageTools,
   ...goalTools,
   ...continuityTools,
+  ...pdfTools,
+  ...scoutTools,
+  ...sandboxTools,
+  ...jobTools,
+  ...browserTools,
 ];
 
 for (const spec of allToolSpecs) {

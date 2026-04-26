@@ -8,7 +8,7 @@ import {
   getMemoryEntities,
   countEntitiesByType,
   EntityType,
-} from '../../services/entities.js';
+} from '../../services/knowledge/entities.js';
 
 const router = Router();
 

@@ -8,7 +8,7 @@
 
 import { pool } from '../db/pool.js';
 import { completeText } from '../providers/llm.js';
-import type { StateTransitionSignal } from './chatExtraction.js';
+import type { StateTransitionSignal } from './chat/chatExtraction.js';
 
 // =============================================================================
 // TYPES

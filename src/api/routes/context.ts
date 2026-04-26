@@ -3,7 +3,7 @@ import {
   generateContext,
   listProfiles,
   getDisclosureLog,
-} from '../../services/context.js';
+} from '../../services/chat/context.js';
 
 const router = Router();
 

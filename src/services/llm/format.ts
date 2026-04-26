@@ -66,7 +66,8 @@ export function toAnthropicMessages(messages: LLMMessage[]): {
   const systemParts: string[] = [];
   const anthropicMessages: AnthropicMessage[] = [];
 
-  for (const msg of messages) {
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i]!;
     if (msg.role === 'system') {
       systemParts.push(msg.content);
     } else if (msg.role === 'user') {
@@ -118,11 +119,16 @@ export function toAnthropicMessages(messages: LLMMessage[]): {
         anthropicMessages.push({ role: 'assistant', content: msg.content });
       }
     } else if (msg.role === 'tool' && msg.tool_call_id) {
-      // Tool results → user message with tool_result content block
-      anthropicMessages.push({
-        role: 'user',
-        content: [{ type: 'tool_result', tool_use_id: msg.tool_call_id, content: msg.content }],
-      });
+      // Tool results → collect all consecutive tool messages into one user message
+      // Anthropic requires all tool_results for one assistant turn in a single user message
+      const toolResultBlocks: AnthropicContentItem[] = [];
+      toolResultBlocks.push({ type: 'tool_result', tool_use_id: msg.tool_call_id, content: msg.content });
+      while (i + 1 < messages.length && messages[i + 1]!.role === 'tool' && messages[i + 1]!.tool_call_id) {
+        i++;
+        const nextTool = messages[i]!;
+        toolResultBlocks.push({ type: 'tool_result', tool_use_id: nextTool.tool_call_id!, content: nextTool.content });
+      }
+      anthropicMessages.push({ role: 'user', content: toolResultBlocks });
     }
   }
 

@@ -40,8 +40,8 @@ async function applyMigration(filename: string, sql: string): Promise<void> {
   }
 }
 
-export async function migrate({ silent = false, managePool = true } = {}): Promise<number> {
-  if (!silent) console.log('Running database migrations...\n');
+async function migrate(): Promise<void> {
+  console.log('Running database migrations...\n');
 
   try {
     await ensureMigrationsTable();
@@ -56,7 +56,7 @@ export async function migrate({ silent = false, managePool = true } = {}): Promi
 
     for (const file of sqlFiles) {
       if (applied.has(file)) {
-        if (!silent) console.log(`  Skipped: ${file} (already applied)`);
+        console.log(`  Skipped: ${file} (already applied)`);
         continue;
       }
 
@@ -65,30 +65,17 @@ export async function migrate({ silent = false, managePool = true } = {}): Promi
       appliedCount++;
     }
 
-    if (!silent) {
-      if (appliedCount === 0) {
-        console.log('\nNo new migrations to apply.');
-      } else {
-        console.log(`\nApplied ${appliedCount} migration(s).`);
-      }
+    if (appliedCount === 0) {
+      console.log('\nNo new migrations to apply.');
+    } else {
+      console.log(`\nApplied ${appliedCount} migration(s).`);
     }
-
-    return appliedCount;
   } catch (error) {
-    if (managePool) {
-      console.error('Migration failed:', error);
-      process.exit(1);
-    }
-    throw error;
+    console.error('Migration failed:', error);
+    process.exit(1);
   } finally {
-    if (managePool) {
-      await closePool();
-    }
+    await closePool();
   }
 }
 
-// Run directly when invoked as a script
-const isDirectRun = process.argv[1]?.includes('migrate');
-if (isDirectRun) {
-  migrate().then(() => process.exit(0));
-}
+migrate();

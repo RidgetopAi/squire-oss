@@ -57,7 +57,7 @@ That's it. You now have a working memory system.
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/squire.git
+git clone https://github.com/RidgetopAi/squire.git
 cd squire
 
 # Install dependencies

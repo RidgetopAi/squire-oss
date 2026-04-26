@@ -1,6 +1,6 @@
 -- Scratchpad: Short-term working memory for Squire
 -- Stores active threads, observations, questions, ideas, and contextual notes
--- Different from notes (user-authored)
+-- Different from notes (user-authored) and Mandrel (project context)
 
 CREATE TYPE scratchpad_entry_type AS ENUM (
   'thread',       -- Active things being tracked

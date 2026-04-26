@@ -14,7 +14,7 @@ import {
   getReminderStats,
   ReminderStatus,
   ReminderChannel,
-} from '../../services/reminders.js';
+} from '../../services/planning/reminders.js';
 
 const router = Router();
 

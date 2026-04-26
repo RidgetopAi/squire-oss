@@ -6,7 +6,7 @@
  * this tool should be used instead of relying on passive extraction.
  */
 
-import { createScheduledReminder, createStandaloneReminder } from '../services/reminders.js';
+import { createScheduledReminder, createStandaloneReminder } from '../services/planning/reminders.js';
 import { config } from '../config/index.js';
 import type { ToolHandler, ToolSpec } from './types.js';
 

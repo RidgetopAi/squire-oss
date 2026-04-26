@@ -13,7 +13,7 @@ import {
   createList,
   addItem,
   toggleItem,
-} from '../services/lists.js';
+} from '../services/planning/lists.js';
 import type { ToolHandler, ToolSpec } from './types.js';
 
 // =============================================================================

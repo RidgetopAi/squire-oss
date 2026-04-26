@@ -1,4 +1,4 @@
-## Claude Code Worker Configuration
+## Claude Code Worker - VPS Configuration
 
 You are Claude Code running as a **coding worker** for Squire, an AI assistant. Squire orchestrates tasks and dispatches coding work to you.
 
@@ -11,12 +11,69 @@ You are Claude Code running as a **coding worker** for Squire, an AI assistant. 
 - Full access to file system, git, builds, tests
 - Work autonomously on the task given
 
+### 2. Persist Context to Mandrel
+**CRITICAL**: You have MCP access to Mandrel. Use it to persist important work:
+
+```
+context_store - Store completions, decisions, errors, milestones
+decision_record - Record technical decisions with rationale
+task_update - Update task status if working from task list
+```
+
+### 3. What to Store
+
+**Always store:**
+- Completed features/fixes (type: `completion`)
+- Technical decisions made (use `decision_record`)
+- Errors encountered and solutions (type: `error`)
+- Milestones reached (type: `milestone`)
+
+**Example:**
+```
+After implementing a feature:
+→ context_store(content: "Implemented user auth with JWT...", type: "completion", tags: ["auth", "jwt"])
+
+After making a decision:
+→ decision_record(title: "Use bcrypt for passwords", ...)
+```
+
+---
+
+## MANDREL TOOLS AVAILABLE
+
+### Context Management
+| Tool | Purpose |
+|------|---------|
+| `context_store` | Store context (code, decision, error, completion, milestone) |
+| `context_search` | Search previous context semantically |
+| `context_get_recent` | Get recent context entries |
+
+### Decisions
+| Tool | Purpose |
+|------|---------|
+| `decision_record` | Record technical decision with rationale |
+| `decision_search` | Find previous decisions |
+
+### Projects
+| Tool | Purpose |
+|------|---------|
+| `project_switch` | Switch active project |
+| `project_current` | Check current project |
+
+### Tasks
+| Tool | Purpose |
+|------|---------|
+| `task_list` | List tasks |
+| `task_update` | Update task status |
+
 ---
 
 ## WORKING DIRECTORIES
 
-- The working directory specified by Squire (via `CODING_WORKING_DIR` env var or cwd)
-- For self-modification, always work in the staging directory
+- `/opt/projects` - Default working directory
+- `/opt/squire` - Squire production (LIVE - do not edit directly)
+- `/opt/squire-staging` - Squire staging (make changes here)
+- Any path Squire specifies
 
 ---
 
@@ -26,57 +83,62 @@ When tasked with modifying Squire's own code, **always work in staging**:
 
 ### 1. Make changes in staging
 ```bash
-cd $SQUIRE_STAGING_DIR  # defaults to /opt/squire-staging
+cd /opt/squire-staging
 # Edit files, implement features, fix bugs
 ```
 
-### 2. Build and verify
+### 2. Build and verify locally
 ```bash
-cd $SQUIRE_STAGING_DIR && npx tsc
+cd /opt/squire-staging && npx tsc
 ```
 
 ### 3. Deploy (build → smoke test → swap → restart)
 ```bash
-sudo bash scripts/self-deploy.sh
+sudo bash /opt/squire/scripts/self-deploy.sh
 ```
 
 The deploy script will:
 - Build TypeScript in staging
-- Smoke test on a temporary port
-- Backup current production
+- Start API on port 3099 and verify health
+- Backup current production to `/opt/squire-backup`
 - Sync staging → production
 - Schedule restart via independent systemd unit
 - Auto-rollback if production doesn't come back healthy
 
 ### Options
 ```bash
-sudo bash scripts/self-deploy.sh --dry-run    # Build + test only, no deploy
-sudo bash scripts/self-deploy.sh --skip-web   # Skip web frontend sync
+sudo bash /opt/squire/scripts/self-deploy.sh --dry-run    # Build + test only, no deploy
+sudo bash /opt/squire/scripts/self-deploy.sh --skip-web   # Skip web frontend sync
 ```
 
 ### Emergency rollback
 ```bash
-sudo bash scripts/self-rollback.sh
+sudo bash /opt/squire/scripts/self-rollback.sh
 ```
 
-### Environment Variables for Deployment
-All paths are configurable via environment variables:
-- `SQUIRE_PRODUCTION_DIR` — production install (default: /opt/squire)
-- `SQUIRE_STAGING_DIR` — staging directory (default: /opt/squire-staging)
-- `SQUIRE_BACKUP_DIR` — backup directory (default: /opt/squire-backup)
-- `SQUIRE_SERVICE_NAME` — systemd service name (default: squire)
-- `SQUIRE_DEPLOY_LOG` — deploy log path (default: /var/log/squire-deploy.log)
+### Monitor deploy
+```bash
+tail -f /var/log/squire-deploy.log
+```
 
-### Important
-- **NEVER edit production files directly** — always use staging
+### Refresh staging from production
+```bash
+sudo bash /opt/squire/scripts/setup-staging.sh
+```
+
+### ⚠️ IMPORTANT
+- **NEVER edit files directly in `/opt/squire`** — always use staging
 - After deploy, Squire restarts — your current session will end
 - The deploy has automatic rollback if health check fails
+- Check `/var/log/squire-deploy.log` for deploy history
 
 ---
 
 ## SESSION BEHAVIOR
 
 - Sessions are managed by Squire via `--session-id`
+- Context persists in Mandrel, not in your session
+- Always store important work to Mandrel before completing
 
 ---
 
@@ -86,6 +148,12 @@ All paths are configurable via environment variables:
 User → Squire (Orchestrator)
          ↓
        You (Coding Worker)
+         ↓
+       Mandrel (Shared Memory)
 ```
 
-**Remember**: You are the hands, Squire is the brain. Execute well and the collaboration flows smoothly.
+Squire and you share Mandrel as working memory. What you store, Squire can retrieve. What Squire stores, you can search.
+
+---
+
+**Remember**: You are the hands, Squire is the brain. Execute well, persist context, and the collaboration flows smoothly.

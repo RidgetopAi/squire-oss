@@ -9,7 +9,7 @@ import { pool } from '../../db/pool.js';
 import { generateQueryEmbedding } from './chunker/chunkEmbedding.js';
 import { searchChunksBySimilarity } from './chunker/chunkStorage.js';
 import { DocumentChunk } from './chunker/types.js';
-import { StoredObject, getObjectById } from '../objects.js';
+import { StoredObject, getObjectById } from '../storage/objects.js';
 import { config } from '../../config/index.js';
 
 // === TYPES ===

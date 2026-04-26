@@ -7,11 +7,11 @@
  */
 
 import { config } from '../../config/index.js';
-import { generateContext } from '../context.js';
-import { detectStoryIntent, isStoryIntent } from '../storyIntent.js';
-import { generateStory } from '../storyEngine.js';
-import { getOrCreateConversation, addMessage, getMessages } from '../conversations.js';
-import { processMessageRealTime } from '../chatExtraction.js';
+import { generateContext } from '../chat/context.js';
+import { detectStoryIntent, isStoryIntent } from '../story/storyIntent.js';
+import { generateStory } from '../story/storyEngine.js';
+import { getOrCreateConversation, addMessage, getMessages } from '../chat/conversations.js';
+import { processMessageRealTime } from '../chat/chatExtraction.js';
 import { AgentEngine } from '../agent/index.js';
 import { getUserIdentity } from '../identity.js';
 import { SQUIRE_SYSTEM_PROMPT_BASE, TOOL_CALLING_INSTRUCTIONS } from '../../constants/prompts.js';
@@ -161,7 +161,7 @@ export async function handleTelegramMessage(message: TelegramMessage): Promise<v
 
     const engine = new AgentEngine({
       conversationId,
-      maxTurns: 50,
+      maxTurns: 200,
       systemPrompt,
       tools: hasTools() ? getToolDefinitions() : [],
       callbacks: {

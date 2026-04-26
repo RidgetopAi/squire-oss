@@ -5,7 +5,7 @@ import type { ServiceHealth, EndpointHealth, ServiceStatus } from './types.js';
 // Service Health Checking
 // ========================================
 
-const SERVICES = ['squire'];
+const SERVICES = ['squire', 'mandrel', 'mandrel-command'];
 
 /**
  * Check the status of a systemd service
@@ -68,6 +68,7 @@ import { config } from '../../config/index.js';
 
 const ENDPOINTS = [
   { url: `http://localhost:${config.server.port}/api/health`, name: 'Squire API' },
+  { url: `${config.mandrel.baseUrl}/health`, name: 'Mandrel' },
 ];
 
 /**

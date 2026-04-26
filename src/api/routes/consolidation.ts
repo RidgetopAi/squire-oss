@@ -12,7 +12,7 @@ import {
   listSessions,
   getSessionStats,
 } from '../../services/sessions.js';
-import { getRelatedMemories, getEdgeStats } from '../../services/edges.js';
+import { getRelatedMemories, getEdgeStats } from '../../services/knowledge/edges.js';
 
 const router = Router();
 

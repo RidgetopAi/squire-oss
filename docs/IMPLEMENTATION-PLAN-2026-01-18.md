@@ -371,7 +371,7 @@ All others are independent and can be done in parallel.
 
 After all changes:
 ```bash
-cd $SQUIRE_PRODUCTION_DIR && git pull && npm run build && sudo systemctl restart squire squire-web
+ssh hetzner 'cd /opt/squire && git pull && npm run build && sudo systemctl restart squire squire-web'
 ```
 
 ---

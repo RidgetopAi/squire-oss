@@ -79,7 +79,7 @@ async function stewardHealthCheck(args: StewardHealthCheckArgs): Promise<string>
 
 export const tools: ToolSpec[] = [{
   name: 'steward_health_check',
-  description: 'Check the health of Squire system services and endpoints. Returns status of systemd services, health endpoints, and recent errors. Use this when troubleshooting issues or verifying system status.',
+  description: 'Check the health of Squire system services and endpoints. Returns status of systemd services (squire, mandrel), health endpoints, and recent errors. Use this when troubleshooting issues or verifying system status.',
   parameters: {
     type: 'object',
     properties: {

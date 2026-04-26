@@ -1,17 +1,17 @@
 /**
  * Claude Code Tool
  *
- * Execute coding tasks via Claude Code headless mode.
- * Maintains session continuity across calls.
+ * Execute coding tasks via Claude Code headless mode on VPS.
+ * Uses Max subscription for inference, maintains session continuity.
  *
  * Architecture:
- * - Squire = Orchestrator + Chat + Memory
- * - Claude Code = Coding Worker with full tooling
+ * - Squire (Sonnet 4.6 API) = Orchestrator + Chat + Memory
+ * - Claude Code (Max sub) = Coding Worker with full tooling
  */
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { writeFileSync, unlinkSync } from 'fs';
+import { existsSync, writeFileSync, unlinkSync } from 'fs';
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { ClaudeCodeArgs, ClaudeCodeResult } from './types.js';
 
@@ -22,19 +22,23 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 // Default configuration
 const DEFAULTS = {
-  workingDir: process.env.CODING_WORKING_DIR || process.cwd(),
+  workingDir: '/opt/projects',
   model: 'sonnet',
   timeout: 900000, // 15 minutes
-  sshUser: process.env.SQUIRE_SSH_USER || '',
-  sshHost: process.env.SQUIRE_SSH_HOST || '',
+  vpsUser: 'ridgetop',
+  sshHost: 'hetzner',
 };
 
 /**
- * Check if we're running locally (no need to SSH)
+ * Check if we're running on the VPS (no need to SSH)
  */
-function isRunningLocally(): boolean {
-  // If no SSH host is configured, we're running locally
-  return !DEFAULTS.sshHost;
+function isRunningOnVPS(): boolean {
+  // Check for VPS-specific indicators
+  const hostname = process.env.HOSTNAME || '';
+  const hasSquireDir = existsSync('/opt/squire');
+  const hasVPSMarker = existsSync('/etc/systemd/system/squire.service');
+
+  return hostname.includes('ubuntu') || hasSquireDir || hasVPSMarker;
 }
 
 /**
@@ -115,21 +119,22 @@ async function claudeCode(args: ClaudeCodeArgs): Promise<string> {
     `--model ${effectiveModel}`,
   ].join(' ');
 
-  // Determine if we're running locally or need to SSH
-  const local = isRunningLocally();
+  // Determine if we're on VPS or need to SSH
+  const onVPS = isRunningOnVPS();
   let command: string;
 
-  if (local) {
-    // Running locally - execute directly
+  if (onVPS) {
+    // Running on VPS - execute directly as ridgetop user
+    // Use 'script' to provide a PTY (Claude Code needs TTY for output)
+    // No single quotes in innerCommand so no escaping needed
     const innerCommand = `cd ${effectiveWorkingDir} && ${claudeCommand} < ${tmpPromptFile}`;
-    command = `script -q -c "bash -c '${innerCommand}'" /dev/null`;
-    console.log(`[claude_code] Executing locally: ${effectiveWorkingDir}`);
+    command = `script -q -c "sudo -u ${DEFAULTS.vpsUser} bash -c '${innerCommand}'" /dev/null`;
+    console.log(`[claude_code] Executing LOCALLY on VPS: ${effectiveWorkingDir}`);
   } else {
-    // Running remotely - copy prompt file to remote host first, then execute
+    // Running remotely - copy prompt file to VPS first, then execute
     await execAsync(`scp ${tmpPromptFile} ${DEFAULTS.sshHost}:${tmpPromptFile}`);
-    const userPrefix = DEFAULTS.sshUser ? `sudo -u ${DEFAULTS.sshUser} ` : '';
-    command = `ssh ${DEFAULTS.sshHost} '${userPrefix}bash -c "cd ${effectiveWorkingDir} && ${claudeCommand} < ${tmpPromptFile} ; rm -f ${tmpPromptFile}"'`;
-    console.log(`[claude_code] Executing via SSH to ${DEFAULTS.sshHost}: ${effectiveWorkingDir}`);
+    command = `ssh ${DEFAULTS.sshHost} 'sudo -u ${DEFAULTS.vpsUser} bash -c "cd ${effectiveWorkingDir} && ${claudeCommand} < ${tmpPromptFile} ; rm -f ${tmpPromptFile}"'`;
+    console.log(`[claude_code] Executing via SSH to VPS: ${effectiveWorkingDir}`);
   }
 
   console.log(`[claude_code] Session: ${sessionId}`);
@@ -207,9 +212,9 @@ async function claudeCode(args: ClaudeCodeArgs): Promise<string> {
 
 export const tools: ToolSpec[] = [{
   name: 'claude_code',
-  description: `Execute coding tasks using Claude Code.
+  description: `Execute coding tasks using Claude Code on VPS.
 
-This tool dispatches complex coding work to Claude Code with:
+This tool dispatches complex coding work to Claude Code running on the VPS with:
 - Full file system access
 - Git operations
 - Code editing and creation
@@ -223,6 +228,9 @@ Use this for:
 - Running tests and builds
 - Any task requiring extensive file operations
 
+Claude Code has access to Mandrel for context storage - it will persist important
+decisions, completions, and context automatically.
+
 Each call generates a fresh session. To resume a previous session, pass a valid UUID as sessionId.`,
   parameters: {
     type: 'object',
@@ -233,7 +241,7 @@ Each call generates a fresh session. To resume a previous session, pass a valid 
       },
       workingDir: {
         type: 'string',
-        description: 'Working directory (defaults to CODING_WORKING_DIR env var or cwd).',
+        description: 'Working directory on VPS (default: /opt/projects). Can be any path like /opt/squire for specific projects.',
       },
       sessionId: {
         type: 'string',

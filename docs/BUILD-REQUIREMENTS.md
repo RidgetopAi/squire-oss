@@ -8,7 +8,17 @@
 
 Before any implementation work:
 
-1. **Read the tracker**
+1. **Read recent Mandrel context**
+   ```
+   context_get_recent
+   ```
+
+2. **Check current Mandrel tasks**
+   ```
+   task_list
+   ```
+
+3. **Read the tracker**
    - Open `docs/IMPLEMENTATION-TRACKER.md`
    - Note what's ✅ complete, 🔄 in progress, 🔲 pending
 
@@ -30,12 +40,17 @@ Before any implementation work:
 
 - [ ] TypeScript compiles: `npm run build` passes
 - [ ] No type errors in new code
-- [ ] Backend builds: `npm run build`
-- [ ] Frontend builds: `cd web && pnpm build`
+- [ ] Backend builds: `cd /home/ridgetop/projects/squire && npm run build`
+- [ ] Frontend builds: `cd /home/ridgetop/projects/squire/web && pnpm build`
 
 ### After Completing Each Task
 
-1. **Update IMPLEMENTATION-TRACKER.md**
+1. **Update Mandrel task status**
+   ```
+   task_update(taskId, status: "completed")
+   ```
+
+2. **Update IMPLEMENTATION-TRACKER.md**
    - Change status: 🔲 → ✅ for completed items
    - Add any new items discovered during implementation
 
@@ -46,9 +61,9 @@ Before any implementation work:
    git push
    ```
 
-4. **Deploy to production** (if requested)
+4. **Deploy to VPS** (if requested)
    ```bash
-   cd $SQUIRE_PRODUCTION_DIR && sudo git pull && npm run build && sudo systemctl restart squire squire-web
+   ssh hetzner 'cd /opt/squire && sudo git pull && npm run build && sudo systemctl restart squire squire-web'
    ```
 
 ---
@@ -64,7 +79,24 @@ Before ending any session:
 - Add any new items discovered
 - Note any blockers or issues
 
-### 2. Commit Tracker Updates
+### 2. Store Mandrel Handoff Context
+
+```
+context_store(
+  content: "## HANDOFF: [Date]\n\n### Completed\n- ...\n\n### In Progress\n- ...\n\n### Next Session\n- ...\n\n### Blockers\n- ...",
+  type: "handoff",
+  tags: ["handoff", "calendar-reminders", "phase-X"]
+)
+```
+
+**Handoff must include:**
+- What was completed (with file paths)
+- What's in progress (with current state)
+- What to do next (specific tasks)
+- Any blockers or decisions needed
+- Any edge cases discovered
+
+### 3. Commit Tracker Updates
 
 ```bash
 git add docs/IMPLEMENTATION-TRACKER.md
@@ -96,7 +128,7 @@ git push
 
 - Migrations go in `schema/` with sequential numbering (018, 019, etc.)
 - Run migrations: `psql -d squire -f schema/XXX_name.sql`
-- Production migrations: `sudo -u postgres psql -d squire -f $SQUIRE_PRODUCTION_DIR/schema/XXX_name.sql`
+- VPS migrations: `ssh hetzner 'sudo -u postgres psql -d squire -f /opt/squire/schema/XXX_name.sql'`
 
 ---
 
@@ -134,15 +166,38 @@ Track issues that block progress:
 
 ---
 
-## Production Deployment
+## VPS Deployment
 
 | Item | Value |
 |------|-------|
-| App path | `$SQUIRE_PRODUCTION_DIR` |
-| Frontend | `https://your-domain.com` |
+| SSH | `ssh hetzner` |
+| App path | `/opt/squire` |
+| Frontend | `https://squire.ridgetopai.net` |
 | Backend service | `squire` (port 3001) |
 | Frontend service | `squire-web` (port 3000) |
 | Database | `squire` (PostgreSQL) |
+
+---
+
+## Mandrel Task Workflow
+
+### Creating Tasks
+```
+task_create(title: "Phase 1.1: Create commitments migration")
+```
+
+### Updating Status
+```
+task_update(taskId: "xxx", status: "in_progress")
+task_update(taskId: "xxx", status: "completed")
+```
+
+### Valid Statuses
+- `todo` - Not started
+- `in_progress` - Currently working
+- `blocked` - Waiting on something
+- `completed` - Done
+- `cancelled` - No longer needed
 
 ---
 
@@ -150,23 +205,23 @@ Track issues that block progress:
 
 ```bash
 # Local build check
-npm run build
+cd /home/ridgetop/projects/squire && npm run build
 
 # Frontend build check
-cd web && pnpm build
+cd /home/ridgetop/projects/squire/web && pnpm build
 
 # Run local backend
-npm run dev
+cd /home/ridgetop/projects/squire && npm run dev
 
 # Run local frontend
-cd web && pnpm dev
+cd /home/ridgetop/projects/squire/web && pnpm dev
 
-# Production deploy
-cd $SQUIRE_PRODUCTION_DIR && sudo git pull && npm run build && sudo systemctl restart squire squire-web
+# VPS deploy
+ssh hetzner 'cd /opt/squire && sudo git pull && npm run build && sudo systemctl restart squire squire-web'
 
-# Production logs
-tail -f /var/log/squire.log
+# VPS logs
+ssh hetzner 'tail -f /var/log/squire.log'
 
-# Production database
-sudo -u postgres psql -d squire
+# VPS database
+ssh hetzner 'sudo -u postgres psql -d squire'
 ```

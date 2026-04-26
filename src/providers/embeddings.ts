@@ -44,75 +44,6 @@ class OllamaEmbeddingProvider implements EmbeddingProvider {
   }
 }
 
-/**
- * OpenAI embedding provider
- * Uses OpenAI API with text-embedding-3-small or text-embedding-3-large
- */
-class OpenAIEmbeddingProvider implements EmbeddingProvider {
-  private baseUrl: string;
-  private model: string;
-  private apiKey: string;
-
-  constructor() {
-    this.baseUrl = config.embedding.openaiUrl;
-    this.model = config.embedding.model;
-    this.apiKey = config.embedding.openaiApiKey;
-    if (!this.apiKey) {
-      throw new Error('OPENAI_API_KEY is required when using OpenAI embeddings');
-    }
-  }
-
-  async embed(text: string): Promise<number[]> {
-    const response = await fetch(`${this.baseUrl}/embeddings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.model,
-        input: text,
-        dimensions: config.embedding.dimension,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI embedding failed: ${response.status} - ${error}`);
-    }
-
-    const data = await response.json() as { data: Array<{ embedding: number[] }> };
-    return data.data[0]!.embedding;
-  }
-
-  async embedBatch(texts: string[]): Promise<number[][]> {
-    // OpenAI supports native batch embedding
-    const response = await fetch(`${this.baseUrl}/embeddings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.model,
-        input: texts,
-        dimensions: config.embedding.dimension,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI batch embedding failed: ${response.status} - ${error}`);
-    }
-
-    const data = await response.json() as { data: Array<{ embedding: number[]; index: number }> };
-    // Sort by index to maintain input order
-    return data.data
-      .sort((a, b) => a.index - b.index)
-      .map((d) => d.embedding);
-  }
-}
-
 // Singleton provider instance
 let provider: EmbeddingProvider | null = null;
 
@@ -124,9 +55,6 @@ function getEmbeddingProvider(): EmbeddingProvider {
     switch (config.embedding.provider) {
       case 'ollama':
         provider = new OllamaEmbeddingProvider();
-        break;
-      case 'openai':
-        provider = new OpenAIEmbeddingProvider();
         break;
       default:
         throw new Error(`Unknown embedding provider: ${config.embedding.provider}`);

@@ -18,7 +18,7 @@ import {
   unpinNote,
   exportNotes,
   NoteSourceType,
-} from '../../services/notes.js';
+} from '../../services/storage/notes.js';
 
 const router = Router();
 

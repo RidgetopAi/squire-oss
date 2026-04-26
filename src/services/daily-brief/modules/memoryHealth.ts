@@ -91,11 +91,23 @@ function getStatusIndicator(
 
 /**
  * Get trend arrow
+ * Accepts either a numeric trend value (-1, 0, 1) or a descriptive string
  */
-function getTrendArrow(trend: string | null): { arrow: string; color: string } {
-  if (!trend) return { arrow: '—', color: COLORS.muted };
+function getTrendArrow(trend: number | string | null | unknown): { arrow: string; color: string } {
+  if (trend === null || trend === undefined) return { arrow: '—', color: COLORS.muted };
 
-  const normalized = trend.toLowerCase();
+  // Handle numeric values (-1 = declining, 0 = stable, 1 = improving)
+  if (typeof trend === 'number') {
+    if (trend > 0) return { arrow: '↑', color: COLORS.success };
+    if (trend < 0) return { arrow: '↓', color: COLORS.danger };
+    return { arrow: '→', color: COLORS.muted };
+  }
+
+  // Guard: if not a string (e.g. object, array from DB), return stable
+  if (typeof trend !== 'string') return { arrow: '→', color: COLORS.muted };
+
+  // Handle string values — coerce to string defensively in case DB returns unexpected type
+  const normalized = String(trend).toLowerCase();
   if (normalized.includes('improv') || normalized.includes('up') || normalized.includes('increas')) {
     return { arrow: '↑', color: COLORS.success };
   }

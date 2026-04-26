@@ -16,7 +16,7 @@ import {
   getNextCommitmentOccurrence,
   parseOccurrenceId,
   CommitmentStatus,
-} from '../../services/commitments.js';
+} from '../../services/planning/commitments.js';
 
 const router = Router();
 

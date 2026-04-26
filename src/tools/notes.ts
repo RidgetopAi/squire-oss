@@ -4,8 +4,8 @@
  * LLM tools for reading and searching user notes.
  */
 
-import { searchNotes, getPinnedNotes, listNotes, createNote, getNote, updateNote, findNoteByTitle } from '../services/notes.js';
-import { searchEntities } from '../services/entities.js';
+import { searchNotes, getPinnedNotes, listNotes, createNote, getNote, updateNote, findNoteByTitle } from '../services/storage/notes.js';
+import { searchEntities } from '../services/knowledge/entities.js';
 import type { ToolHandler, ToolSpec } from './types.js';
 
 // =============================================================================

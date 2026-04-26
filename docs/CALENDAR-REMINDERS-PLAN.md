@@ -699,12 +699,12 @@ Frontend:
 # Google OAuth
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-GOOGLE_REDIRECT_URI=https://your-domain.com/api/integrations/google/callback
+GOOGLE_REDIRECT_URI=https://squire.ridgetopai.net/api/integrations/google/callback
 
 # Web Push (generate with: npx web-push generate-vapid-keys)
 VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
-VAPID_SUBJECT=mailto:your-email@example.com
+VAPID_SUBJECT=mailto:brian@ridgetopai.net
 ```
 
 ---

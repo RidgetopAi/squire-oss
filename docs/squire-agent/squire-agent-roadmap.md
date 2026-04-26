@@ -50,17 +50,17 @@ Add file system and development tools.
 
 ---
 
-## Phase 4: Context Management Integration
+## Phase 4: Mandrel Integration
 
-Working memory via context management tools.
+Full MCP access for working memory.
 
-- [ ] Connect agent to context management tools (MCP or similar)
+- [ ] Connect agent to Mandrel MCP tools
 - [ ] Auto-store context during work sessions
 - [ ] Project switching based on work directory
 - [ ] Task tracking integration
 - [ ] Decision recording for architecture choices
 
-**Outcome:** Agent uses persistent context as working memory, tracks its own work.
+**Outcome:** Agent uses Mandrel as working memory, tracks its own work.
 
 ---
 
@@ -112,7 +112,7 @@ Agent works on itself.
 ```
 Phase 1 (Telegram) ─────┐
                         ├──► Phase 2 (Loop) ──► Phase 3 (Tools) ──► Phase 7 (Dogfood)
-Phase 4 (Context) ──────┘           │
+Phase 4 (Mandrel) ──────┘           │
                                     ▼
                             Phase 5 (Routing)
                                     │
@@ -131,7 +131,7 @@ Phase 4 (Context) ──────┘           │
 | 1 | Telegram bot | Long-polling, not webhooks |
 | 2 | Agent loop | Two-loop pattern (inner runs until no tools) |
 | 3 | Coding tools | Claude Code style (Read, Edit, Write, Bash) |
-| 4 | Context Mgmt | Full MCP integration |
+| 4 | Mandrel | Full MCP integration |
 | 5 | Model routing | Grok for cheap, Claude for complex |
 | 6 | Agent memory | Lessons + self-tuning |
 | 7 | Dogfooding | Self-improvement capability |
@@ -144,7 +144,7 @@ Phase 4 (Context) ──────┘           │
 - [x] Squire running on Claude Opus 4.5
 - [x] System prompt with Brian personality
 - [x] Anthropic streaming in socket handler
-- [x] Context management project created (squire-agent)
+- [x] Mandrel project created (squire-agent)
 - [x] Architecture documented
 
 **Next:** Phase 1 - Telegram Bridge

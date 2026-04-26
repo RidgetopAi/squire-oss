@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { listCommitmentsExpanded, ExpandedCommitment, updateCommitment, getCommitment } from '../../services/commitments.js';
+import { listCommitmentsExpanded, ExpandedCommitment, updateCommitment, getCommitment } from '../../services/planning/commitments.js';
 import { getAllEvents, updateEventInGoogle, GoogleEvent } from '../../services/google/events.js';
 import { listSyncEnabledAccounts } from '../../services/google/auth.js';
 import { getCalendar } from '../../services/google/calendars.js';

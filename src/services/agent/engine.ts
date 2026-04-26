@@ -71,6 +71,8 @@ export interface AgentEngineOptions {
   systemPrompt?: string;
   /** Tools to make available (defaults to all registered tools) */
   tools?: ToolDefinition[];
+  /** Force a specific model tier, bypassing task classification */
+  tier?: ModelTier;
 }
 
 // === AgentEngine Class ===
@@ -116,7 +118,7 @@ export class AgentEngine {
    */
   constructor(options: AgentEngineOptions) {
     this.conversationId = options.conversationId;
-    this.maxTurns = options.maxTurns ?? 50;
+    this.maxTurns = options.maxTurns ?? 200;
     this.callbacks = options.callbacks ?? {};
     this.abortController = new AbortController();
 
@@ -129,6 +131,9 @@ export class AgentEngine {
 
     // Use provided tools or default to all registered tools
     this.tools = options.tools ?? getToolDefinitions();
+
+    // Allow callers to force a model tier (bypasses task classification)
+    this.tier = options.tier;
   }
 
   /**
@@ -157,27 +162,27 @@ export class AgentEngine {
       // Retrieve relevant memory context
       const memoryContext = await buildMemoryContext(input);
 
-      // Build system prompt with optional context
-      let systemContent = this.systemPrompt;
+      // System prompt split into two messages for Anthropic prompt caching:
+      // Message 1 (static): personality + instructions — identical every call, gets cached
+      // Message 2 (dynamic): memory context + additional context — changes per call, uncached
+      this.messages.push({ role: 'system', content: this.systemPrompt });
 
-      // Add memory context (lessons and preferences)
-      if (memoryContext) {
-        systemContent += `\n\n---\n\n${memoryContext}`;
+      // Build dynamic context block (if any)
+      const dynamicParts: string[] = [];
+      if (memoryContext) dynamicParts.push(memoryContext);
+      if (context) dynamicParts.push(context);
+
+      if (dynamicParts.length > 0) {
+        this.messages.push({ role: 'system', content: dynamicParts.join('\n\n---\n\n') });
       }
-
-      // Add any additional context passed in
-      if (context) {
-        systemContent += `\n\n---\n\n${context}`;
-      }
-
-      // Initialize messages with system prompt and user input
-      this.messages.push({ role: 'system', content: systemContent });
       this.messages.push({ role: 'user', content: input });
 
-      // Classify task for routing (once per conversation)
-      if (isRoutingEnabled()) {
+      // Classify task for routing (once per conversation, skip if tier was preset)
+      if (!this.tier && isRoutingEnabled()) {
         this.tier = classifyTask(input);
         console.log(`[Routing] Task classified as "${this.tier}" tier`);
+      } else if (this.tier) {
+        console.log(`[Routing] Using preset tier: "${this.tier}"`);
       }
 
       // Track final response content

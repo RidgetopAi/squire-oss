@@ -10,9 +10,9 @@ import type { SystemHealth } from './types.js';
  * Get comprehensive system health information
  *
  * Checks:
- * - systemd services (squire)
- * - Health endpoints (Squire API)
- * - Recent errors from logs (journalctl)
+ * - systemd services (squire, mandrel, mandrel-command)
+ * - Health endpoints (Squire API, Mandrel)
+ * - Recent errors from logs (mandrel-mcp.log, journalctl)
  *
  * @returns SystemHealth object with overall status and detailed checks
  */

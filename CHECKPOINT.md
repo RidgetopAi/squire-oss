@@ -175,7 +175,7 @@ Commit: 996d7e5
 - [x] `npm run typecheck` passes (if available)
 - [x] No new TypeScript errors introduced
 - [x] Changes tested manually where applicable
-- [x] Deploy to production server
+- [x] Deploy to VPS: `ssh hetzner 'cd /opt/squire && git pull && npm run build && sudo systemctl restart squire squire-web'`
 
 ---
 

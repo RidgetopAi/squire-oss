@@ -11,7 +11,7 @@ import {
   resolveEntry,
   resolveEntryByContent,
   type ScratchpadEntryType,
-} from '../services/scratchpad.js';
+} from '../services/storage/scratchpad.js';
 import type { ToolHandler, ToolSpec } from './types.js';
 
 // =============================================================================

@@ -240,28 +240,89 @@ export async function trashEmail(accountId: string, emailId: string): Promise<bo
   }
 }
 
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer | string;
+  mimeType: string;
+  encoding?: 'base64' | 'binary';
+}
+
 /**
- * Send an email
+ * Send an email with optional attachments
  */
 export async function sendEmail(
   accountId: string,
   to: string,
   subject: string,
-  body: string
-): Promise<boolean> {
+  body: string,
+  attachments?: EmailAttachment[]
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const auth = await getAuthenticatedClient(accountId);
   const gmail = google.gmail({ version: 'v1', auth });
 
-  // Create RFC 2822 formatted message
-  const messageParts = [
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    'Content-Type: text/plain; charset=utf-8',
-    'MIME-Version: 1.0',
-    '',
-    body,
-  ];
-  const rawMessage = messageParts.join('\r\n');
+  let rawMessage: string;
+
+  if (!attachments || attachments.length === 0) {
+    // Simple plain text message (backward compatible)
+    const messageParts = [
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'Content-Type: text/plain; charset=utf-8',
+      'MIME-Version: 1.0',
+      '',
+      body,
+    ];
+    rawMessage = messageParts.join('\r\n');
+  } else {
+    // Multipart MIME message with attachments
+    const boundary = `boundary_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+
+    const messageParts = [
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: text/plain; charset=utf-8',
+      '',
+      body,
+      '',
+    ];
+
+    // Add each attachment
+    for (const attachment of attachments) {
+      const encoding = attachment.encoding || 'base64';
+      let contentData: string;
+
+      if (Buffer.isBuffer(attachment.content)) {
+        // Convert Buffer to base64
+        contentData = attachment.content.toString('base64');
+      } else if (encoding === 'base64') {
+        // Already base64 encoded
+        contentData = attachment.content;
+      } else {
+        // String content, encode to base64
+        contentData = Buffer.from(attachment.content).toString('base64');
+      }
+
+      messageParts.push(`--${boundary}`);
+      messageParts.push(`Content-Type: ${attachment.mimeType}; name="${attachment.filename}"`);
+      messageParts.push(`Content-Disposition: attachment; filename="${attachment.filename}"`);
+      messageParts.push('Content-Transfer-Encoding: base64');
+      messageParts.push('');
+
+      // Split base64 content into 76-character lines per RFC 2045
+      const lines = contentData.match(/.{1,76}/g) || [];
+      messageParts.push(...lines);
+      messageParts.push('');
+    }
+
+    // Close boundary
+    messageParts.push(`--${boundary}--`);
+
+    rawMessage = messageParts.join('\r\n');
+  }
 
   // Base64 URL-safe encode the message
   const encodedMessage = Buffer.from(rawMessage)
@@ -271,16 +332,23 @@ export async function sendEmail(
     .replace(/=+$/, '');
 
   try {
-    await gmail.users.messages.send({
+    const response = await gmail.users.messages.send({
       userId: 'me',
       requestBody: {
         raw: encodedMessage,
       },
     });
-    return true;
+    return {
+      success: true,
+      messageId: response.data.id || undefined,
+    };
   } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     console.error('Failed to send email:', err);
-    return false;
+    return {
+      success: false,
+      error: errorMessage,
+    };
   }
 }
 

@@ -11,7 +11,7 @@ import {
   isValidBeliefType,
   BELIEF_TYPES,
   type BeliefType,
-} from '../../services/beliefs.js';
+} from '../../services/knowledge/beliefs.js';
 
 const router = Router();
 

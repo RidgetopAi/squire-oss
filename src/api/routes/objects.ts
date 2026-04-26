@@ -38,7 +38,7 @@ import {
   type ProcessingStatus,
   type MemoryLinkType,
   type EntityLinkType,
-} from '../../services/objects.js';
+} from '../../services/storage/objects.js';
 
 const router = Router();
 

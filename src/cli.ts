@@ -2,16 +2,16 @@
 
 import { Command } from 'commander';
 import { readFileSync } from 'fs';
-import { createMemory, listMemories, countMemories, searchMemories, getMemory } from './services/memories.js';
-import { generateContext, listProfiles } from './services/context.js';
+import { createMemory, listMemories, countMemories, searchMemories, getMemory } from './services/knowledge/memories.js';
+import { generateContext, listProfiles } from './services/chat/context.js';
 import {
   listEntities,
   findEntityByName,
   countEntitiesByType,
   EntityType,
-} from './services/entities.js';
+} from './services/knowledge/entities.js';
 import { consolidateAll, getConsolidationStats } from './services/consolidation.js';
-import { getRelatedMemories, getEdgeStats } from './services/edges.js';
+import { getRelatedMemories, getEdgeStats } from './services/knowledge/edges.js';
 import { parseImportFile, importMemories, getImportStats } from './services/import.js';
 import {
   getAllSummaries,
@@ -36,7 +36,7 @@ import {
   BELIEF_TYPES,
   getBeliefTypeDescription,
   type BeliefType,
-} from './services/beliefs.js';
+} from './services/knowledge/beliefs.js';
 import {
   getAllPatterns,
   getPattern,
@@ -46,7 +46,7 @@ import {
   PATTERN_TYPES,
   getPatternTypeDescription,
   type PatternType,
-} from './services/patterns.js';
+} from './services/knowledge/patterns.js';
 import {
   getAllInsights,
   getInsight,
@@ -62,7 +62,7 @@ import {
   getPriorityEmoji,
   type InsightType,
   type InsightPriority,
-} from './services/insights.js';
+} from './services/knowledge/insights.js';
 import {
   getAllGaps,
   getGap,
@@ -96,8 +96,8 @@ import {
   findPathBetweenEntities,
   getEntitySubgraph,
   getGraphStats,
-} from './services/graph.js';
-import { getEntity, searchEntities } from './services/entities.js';
+} from './services/knowledge/graph.js';
+import { getEntity, searchEntities } from './services/knowledge/entities.js';
 import {
   createObject,
   getObjectById,
@@ -119,9 +119,8 @@ import {
   getObjectStats,
   OBJECT_TYPES,
   type ObjectType,
-} from './services/objects.js';
+} from './services/storage/objects.js';
 import { pool, checkConnection, closePool } from './db/pool.js';
-import { runSetup } from './cli/setup.js';
 import { checkEmbeddingHealth } from './providers/embeddings.js';
 import { checkLLMHealth, getLLMInfo } from './providers/llm.js';
 import { config } from './config/index.js';
@@ -2706,16 +2705,6 @@ program
     } finally {
       await closePool();
     }
-  });
-
-/**
- * setup - Interactive onboarding for new users
- */
-program
-  .command('setup')
-  .description('Interactive first-time setup (config, database, identity, seed memories)')
-  .action(async () => {
-    await runSetup();
   });
 
 program.parse();

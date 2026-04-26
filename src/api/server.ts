@@ -1,8 +1,11 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { config } from '../config/index.js';
 import { registerSocketHandlers, setSocketServer } from './socket/index.js';
+import { apiKeyAuth } from './middleware/auth.js';
 import memoriesRouter from './routes/memories.js';
 import healthRouter from './routes/health.js';
 import contextRouter from './routes/context.js';
@@ -27,14 +30,13 @@ import identityRouter from './routes/identity.js';
 import documentsRouter from './routes/documents.js';
 import toolsRouter from './routes/tools.js';
 import savedCardsRouter from './routes/saved-cards.js';
-import recallRouter from './routes/recall.js';
 import { initScheduler, shutdownScheduler } from '../services/scheduler.js';
 import { migrateFromPersonalitySummary } from '../services/identity.js';
 import { syncAllAccounts } from '../services/google/sync.js';
-import { isGoogleConfigured } from '../services/google/auth.js';
 import { startTelegramPoller, stopTelegramPoller } from '../services/telegram/index.js';
 import { startCourier, stopCourier } from '../services/courier/index.js';
 import { initCommuneScheduler, shutdownCommuneScheduler } from '../services/commune/index.js';
+import { closePool } from '../db/pool.js';
 
 // Google Calendar sync interval (configurable, default 15 minutes)
 const CALENDAR_SYNC_INTERVAL_MS = parseInt(process.env['CALENDAR_SYNC_INTERVAL_MS'] || '900000', 10);
@@ -62,11 +64,45 @@ registerSocketHandlers(io);
 // Register io for broadcast functions (used by services)
 setSocketServer(io);
 
+// Security middleware
+app.use(helmet({
+  // Disable CSP for API-only server (frontend handles CSP)
+  contentSecurityPolicy: false,
+}));
+
+// General rate limiter (100 req / 15 min per IP)
+const generalLimiter = rateLimit({
+  windowMs: config.security.rateLimitWindowMs,
+  max: config.security.rateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' },
+});
+
+// Stricter rate limiter for chat endpoint (20 req / min per IP)
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: config.security.chatRateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many chat requests, please try again later' },
+});
+
+// Apply general rate limit to all API routes
+app.use('/api', generalLimiter);
+
 // Middleware
 app.use(express.json({ limit: '5mb' }));
 
-// Routes
+// Health check - no auth required (for monitoring)
 app.use('/api/health', healthRouter);
+
+// API key authentication for all other routes
+app.use('/api', apiKeyAuth);
+
+// Chat route with stricter rate limit
+app.use('/api/chat', chatLimiter, chatRouter);
+
 app.use('/api/memories', memoriesRouter);
 app.use('/api/context', contextRouter);
 app.use('/api/entities', entitiesRouter);
@@ -78,7 +114,7 @@ app.use('/api/insights', insightsRouter);
 app.use('/api/research', researchRouter);
 app.use('/api/graph', graphRouter);
 app.use('/api/objects', objectsRouter);
-app.use('/api/chat', chatRouter);
+// Note: /api/chat is registered above with stricter rate limit
 app.use('/api/commitments', commitmentsRouter);
 app.use('/api/reminders', remindersRouter);
 app.use('/api/notifications', notificationsRouter);
@@ -90,7 +126,6 @@ app.use('/api/identity', identityRouter);
 app.use('/api/documents', documentsRouter);
 app.use('/api/tools', toolsRouter);
 app.use('/api/saved-cards', savedCardsRouter);
-app.use('/api/recall', recallRouter);
 
 // 404 handler
 app.use((_req, res) => {
@@ -124,30 +159,26 @@ httpServer.listen(port, async () => {
   initScheduler();
   console.log(`Reminder scheduler started`);
 
-  // Start Google Calendar sync scheduler (only if configured)
-  if (isGoogleConfigured()) {
-    const runCalendarSync = async () => {
-      try {
-        console.log('[CalendarSync] Starting sync...');
-        const results = await syncAllAccounts();
-        const accountCount = results.size;
-        let totalEvents = 0;
-        results.forEach((r) => { totalEvents += r.events.pulled; });
-        console.log(`[CalendarSync] Synced ${accountCount} account(s), ${totalEvents} events pulled`);
-      } catch (error) {
-        console.error('[CalendarSync] Sync failed:', error);
-      }
-    };
+  // Start Google Calendar sync scheduler
+  const runCalendarSync = async () => {
+    try {
+      console.log('[CalendarSync] Starting sync...');
+      const results = await syncAllAccounts();
+      const accountCount = results.size;
+      let totalEvents = 0;
+      results.forEach((r) => { totalEvents += r.events.pulled; });
+      console.log(`[CalendarSync] Synced ${accountCount} account(s), ${totalEvents} events pulled`);
+    } catch (error) {
+      console.error('[CalendarSync] Sync failed:', error);
+    }
+  };
 
-    // Run initial sync after short delay (let server fully start)
-    setTimeout(runCalendarSync, 5000);
+  // Run initial sync after short delay (let server fully start)
+  setTimeout(runCalendarSync, 5000);
 
-    // Schedule periodic syncs
-    calendarSyncTimer = setInterval(runCalendarSync, CALENDAR_SYNC_INTERVAL_MS);
-    console.log(`Google Calendar sync scheduler started (every ${CALENDAR_SYNC_INTERVAL_MS / 60000} minutes)`);
-  } else {
-    console.log('[Server] Google Calendar not configured, skipping sync');
-  }
+  // Schedule periodic syncs
+  calendarSyncTimer = setInterval(runCalendarSync, CALENDAR_SYNC_INTERVAL_MS);
+  console.log(`Google Calendar sync scheduler started (every ${CALENDAR_SYNC_INTERVAL_MS / 60000} minutes)`);
 
   // Start Telegram bot poller (if configured)
   try {
@@ -172,9 +203,15 @@ httpServer.listen(port, async () => {
   }
 });
 
-// Graceful shutdown
-const shutdown = () => {
-  console.log('Shutting down gracefully...');
+// Graceful shutdown — drain in-flight requests, close DB pool, then exit
+let shutdownInProgress = false;
+const shutdown = async () => {
+  if (shutdownInProgress) return;
+  shutdownInProgress = true;
+
+  console.log('[Shutdown] Starting graceful shutdown...');
+
+  // 1. Stop accepting new work
   shutdownScheduler();
   stopTelegramPoller();
   stopCourier();
@@ -183,10 +220,31 @@ const shutdown = () => {
     clearInterval(calendarSyncTimer);
     calendarSyncTimer = null;
   }
-  httpServer.close(() => {
-    console.log('Server closed');
-    process.exit(0);
+
+  // 2. Close Socket.IO (stops new connections, lets in-flight finish)
+  io.close();
+  console.log('[Shutdown] Socket.IO closed');
+
+  // 3. Close HTTP server (stops new requests, waits for in-flight)
+  await new Promise<void>((resolve) => {
+    httpServer.close(() => {
+      console.log('[Shutdown] HTTP server closed');
+      resolve();
+    });
+    // If it takes too long, proceed anyway
+    setTimeout(resolve, 5000);
   });
+
+  // 4. Drain database pool (waits for in-flight queries to finish)
+  try {
+    await closePool();
+    console.log('[Shutdown] Database pool closed');
+  } catch (err) {
+    console.error('[Shutdown] Error closing database pool:', err);
+  }
+
+  console.log('[Shutdown] Clean exit');
+  process.exit(0);
 };
 
 process.on('SIGTERM', shutdown);

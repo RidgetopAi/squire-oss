@@ -13,7 +13,7 @@ import {
   type PatternType,
   type TimeOfDay,
   type DayOfWeek,
-} from '../../services/patterns.js';
+} from '../../services/knowledge/patterns.js';
 
 const router = Router();
 

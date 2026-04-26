@@ -294,7 +294,12 @@ Each instance should produce a report with:
 5. **Recommended Fixes** - Concrete actions to take
 6. **Questions for User** - Any clarifications needed
 
-Store findings in the project documentation or your preferred context tracking system.
+Store findings to Mandrel using:
+```bash
+ssh hetzner 'curl -s -X POST http://localhost:8080/mcp/tools/context_store \
+  -H "Content-Type: application/json" \
+  -d '\''{"arguments": {"content": "<your findings>", "type": "completion", "tags": ["squire", "review", "instance-N"]}}'\'''
+```
 
 ---
 

@@ -162,65 +162,65 @@
 
 ---
 
-## Tasks
+## Mandrel Tasks
 
 ### Phase 1: Core Commitments
 
-| # | Task | Status |
-|---|------|--------|
-| 1.1 | Create commitments migration (018_commitments.sql) | ✅ |
-| 1.2 | Create commitments service | ✅ |
-| 1.3 | Create commitments API routes | ✅ |
-| 1.4 | Add commitment detection to chat extraction | ✅ |
-| 1.5 | Create commitments page and list (frontend) | ✅ |
+| # | Task | Mandrel ID | Status |
+|---|------|------------|--------|
+| 1.1 | Create commitments migration (018_commitments.sql) | `6dc77d37-12e7-4cf7-a38d-01f60662a7a5` | ✅ |
+| 1.2 | Create commitments service | `7b525561-b250-48dd-bb2e-f1f106aad49f` | ✅ |
+| 1.3 | Create commitments API routes | `df506266-d471-439a-9ef8-1fa67258b1c4` | ✅ |
+| 1.4 | Add commitment detection to chat extraction | `63dbeef4-fc10-4bbf-9ac0-baec97a2586f` | ✅ |
+| 1.5 | Create commitments page and list (frontend) | `66f029ee-8517-4fe1-8740-e997e70121fc` | ✅ |
 
 ### Phase 2: Reminders + PWA Push
 
-| # | Task | Status |
-|---|------|--------|
-| 2.1 | Create reminders migration (019_reminders.sql) | ✅ |
-| 2.2 | Create push_subscriptions migration (021) | ✅ |
-| 2.3 | Create reminders service | ✅ |
-| 2.4 | Create push notification service | ✅ |
-| 2.5 | Create scheduler service | ✅ |
-| 2.6 | Create reminders API routes | ✅ |
-| 2.7 | Create notifications API routes | ✅ |
-| 2.8 | Create service worker for PWA push | ✅ |
-| 2.9 | Add "remind me in X" parsing | ✅ |
-| 2.10 | Create push permission UI component | ✅ |
+| # | Task | Mandrel ID | Status |
+|---|------|------------|--------|
+| 2.1 | Create reminders migration (019_reminders.sql) | `31a29a56-326a-4bfb-9561-e9987b31c420` | ✅ |
+| 2.2 | Create push_subscriptions migration (021) | `19e95a01-6760-4338-9145-0df688a6da7a` | ✅ |
+| 2.3 | Create reminders service | `9bad05e1-5d28-4306-ab83-bba0e2db9d04` | ✅ |
+| 2.4 | Create push notification service | `93dcb88a-f2e2-423c-8de1-cb2e9ef94882` | ✅ |
+| 2.5 | Create scheduler service | `d31302d1-554c-4cc3-b90f-03e414fc68c6` | ✅ |
+| 2.6 | Create reminders API routes | `61403daa-970b-4f0f-ab51-a095789cbb26` | ✅ |
+| 2.7 | Create notifications API routes | `b77537ac-33f3-427c-a3bf-bc4e0574113e` | ✅ |
+| 2.8 | Create service worker for PWA push | `1f225f73-e207-47f4-8e5f-173863701a62` | ✅ |
+| 2.9 | Add "remind me in X" parsing | `06f9a0b3-e7dc-46b0-b117-f66e6cbe5586` | ✅ |
+| 2.10 | Create push permission UI component | `f1043002-29c6-4506-9e44-4f6b6049c7e1` | ✅ |
 
 ### Phase 3: Google Calendar Sync
 
-| # | Task | Status |
-|---|------|--------|
-| 3.1 | Create google integration migration (020) | ✅ |
-| 3.2 | Create Google auth service | ✅ |
-| 3.3 | Create Google calendars service | ✅ |
-| 3.4 | Create Google events service | ✅ |
-| 3.5 | Create Google sync orchestration | ✅ |
-| 3.6 | Create Google integration API routes | ✅ |
-| 3.7 | Create calendar API routes (unified view) | ✅ |
-| 3.8 | Create settings/integrations page | ✅ |
-| 3.9 | Create calendar page with merged view | ✅ |
+| # | Task | Mandrel ID | Status |
+|---|------|------------|--------|
+| 3.1 | Create google integration migration (020) | `bfb5dea5-0e83-491f-a078-b7acb40278ce` | ✅ |
+| 3.2 | Create Google auth service | `839684b1-53da-4ee6-b267-b2fc3e5bef64` | ✅ |
+| 3.3 | Create Google calendars service | `e984e0fe-79e3-436a-985f-da7d0964c144` | ✅ |
+| 3.4 | Create Google events service | `d89967e4-6ad3-4fbe-bbeb-43f98395931a` | ✅ |
+| 3.5 | Create Google sync orchestration | `2e3263d3-2fb3-4a2b-a55b-3917898bd2ce` | ✅ |
+| 3.6 | Create Google integration API routes | `9116f9c5-e6b6-4ea6-9ffa-6be9019ae958` | ✅ |
+| 3.7 | Create calendar API routes (unified view) | `d2d7bf90-ffb2-42ed-b7c5-49200888f51e` | ✅ |
+| 3.8 | Create settings/integrations page | `0bcbe9ee-6e1f-4437-859e-535e83effae3` | ✅ |
+| 3.9 | Create calendar page with merged view | `eee91aeb-047f-4c3d-9dcc-e20bc19b89f6` | ✅ |
 
 ### Phase 4: Recurrence (RRULE)
 
-| # | Task | Status |
-|---|------|--------|
-| 4.1 | Add rrule dependency and types | ✅ |
-| 4.2 | Add recurrence expansion to commitments service | ✅ |
-| 4.3 | Create RecurrenceEditor component | ✅ |
-| 4.4 | Update calendar queries to expand recurring | ✅ |
+| # | Task | Mandrel ID | Status |
+|---|------|------------|--------|
+| 4.1 | Add rrule dependency and types | `93e25f1f-88b3-486d-9c0e-332309c15953` | ✅ |
+| 4.2 | Add recurrence expansion to commitments service | `b0a4ce5b-48d9-49e0-be75-0e0ee0446096` | ✅ |
+| 4.3 | Create RecurrenceEditor component | `1bacd056-6ea8-441a-9a37-e7fc75c77f89` | ✅ |
+| 4.4 | Update calendar queries to expand recurring | `1d542dcf-feac-40d2-93b5-a963306a0881` | ✅ |
 
 ### Phase 5: Resolution Detection
 
-| # | Task | Status |
-|---|------|--------|
-| 5.1 | Create resolution classification prompt | ✅ |
-| 5.2 | Add embedding similarity search | ✅ |
-| 5.3 | Integrate resolution detection into chat | ✅ |
-| 5.4 | Create memory edges on resolution | ✅ |
-| 5.5 | Create resolution confirmation UI | ✅ |
+| # | Task | Mandrel ID | Status |
+|---|------|------------|--------|
+| 5.1 | Create resolution classification prompt | `7541cf20-496a-4400-b7df-dd9bbeb9c5d0` | ✅ |
+| 5.2 | Add embedding similarity search | `53189833-3129-42cb-92b6-998511fc3f6c` | ✅ |
+| 5.3 | Integrate resolution detection into chat | `32b1e6b3-bbc7-48b4-98f4-21ac41e4ecb5` | ✅ |
+| 5.4 | Create memory edges on resolution | `650d7e28-27e5-4e2b-bb50-3955f6d99d39` | ✅ |
+| 5.5 | Create resolution confirmation UI | `bb235709-3ef8-4a40-8a93-6671b4eb1e75` | ✅ |
 
 ---
 

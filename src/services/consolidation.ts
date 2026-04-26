@@ -1,5 +1,5 @@
 import { pool } from '../db/pool.js';
-import { Memory } from './memories.js';
+import { Memory } from './knowledge/memories.js';
 import {
   Session,
   SessionStats,
@@ -9,19 +9,20 @@ import {
 import {
   processMemoryForPatterns,
   markStalePatternsDormant,
-} from './patterns.js';
+} from './knowledge/patterns.js';
 import {
   processInsightsForConsolidation,
-} from './insights.js';
+} from './knowledge/insights.js';
 import {
   processResearchForConsolidation,
 } from './research.js';
-import { extractMemoriesFromChat } from './chatExtraction.js';
+import { extractMemoriesFromChat } from './chat/chatExtraction.js';
 import { updateAllSummaries } from './summaries.js';
-import { evaluateUnevaluatedMemories } from './expressionEvaluator.js';
+import { evaluateUnevaluatedMemories } from './expression/expressionEvaluator.js';
 import { processThreadsForConsolidation } from './continuity.js';
-import { processStateSnapshot } from './stateSnapshots.js';
-import { processTrendsForConsolidation } from './trends.js';
+import { processStateSnapshot } from './analytics/stateSnapshots.js';
+import { processTrendsForConsolidation } from './analytics/trends.js';
+import { generateEmotionalSynthesis } from './analytics/emotionalSynthesis.js';
 
 /**
  * Consolidation Configuration
@@ -101,6 +102,8 @@ export interface ConsolidationResult {
   // Continuity threads (Step 8.5)
   threadsDormant: number;
   followupsGenerated: number;
+  // Emotional synthesis (Step 8.7)
+  emotionalSynthesisGenerated: boolean;
   // State snapshot (Step 9)
   snapshotCreated: boolean;
   concernsDetected: number;
@@ -431,6 +434,15 @@ async function consolidateSession(session: Session): Promise<ConsolidationResult
     // 8.5. Process continuity threads
     const continuityResult = await processThreadsForConsolidation();
 
+    // 8.7. Generate emotional synthesis (Dream pass)
+    let emotionalSynthesisGenerated = false;
+    try {
+      const synthesisResult = await generateEmotionalSynthesis();
+      emotionalSynthesisGenerated = synthesisResult.synthesis.length > 0;
+    } catch (error) {
+      console.error('[Consolidation] Emotional synthesis failed (non-fatal):', error);
+    }
+
     // 9. Generate state snapshot
     const snapshotResult = await processStateSnapshot();
 
@@ -483,6 +495,7 @@ async function consolidateSession(session: Session): Promise<ConsolidationResult
       expressionBlocked: expressionResult.blocked,
       threadsDormant: continuityResult.threadsDormant,
       followupsGenerated: continuityResult.followupsGenerated,
+      emotionalSynthesisGenerated,
       snapshotCreated: snapshotResult.snapshotCreated,
       concernsDetected: snapshotResult.concernsDetected,
       trendsGenerated: trendsResult.trendsGenerated,
@@ -545,6 +558,19 @@ export async function consolidateAll(): Promise<ConsolidationResult> {
   console.log('[Consolidation] Step 8.5: Processing continuity threads...');
   const continuityResult = await processThreadsForConsolidation();
 
+  // 8.7. Generate emotional synthesis (Dream pass — Squire's subjective read)
+  console.log('[Consolidation] Step 8.7: Generating emotional synthesis...');
+  let emotionalSynthesisGenerated = false;
+  try {
+    const synthesisResult = await generateEmotionalSynthesis();
+    emotionalSynthesisGenerated = synthesisResult.synthesis.length > 0;
+    if (emotionalSynthesisGenerated) {
+      console.log(`[Consolidation] Emotional synthesis: ${synthesisResult.synthesis.substring(0, 80)}...`);
+    }
+  } catch (error) {
+    console.error('[Consolidation] Emotional synthesis failed (non-fatal):', error);
+  }
+
   // 9. Generate state snapshot (affect inference + narrative)
   console.log('[Consolidation] Step 9: Generating state snapshot...');
   const snapshotResult = await processStateSnapshot();
@@ -589,6 +615,7 @@ export async function consolidateAll(): Promise<ConsolidationResult> {
     expressionBlocked: expressionResult.blocked,
     threadsDormant: continuityResult.threadsDormant,
     followupsGenerated: continuityResult.followupsGenerated,
+    emotionalSynthesisGenerated,
     snapshotCreated: snapshotResult.snapshotCreated,
     concernsDetected: snapshotResult.concernsDetected,
     trendsGenerated: trendsResult.trendsGenerated,

@@ -10,7 +10,7 @@
 
 import { pool } from '../db/pool.js';
 import { generateEmbedding } from '../providers/embeddings.js';
-import { createEdge } from './edges.js';
+import { createEdge } from './knowledge/edges.js';
 
 export interface ReinforcementResult {
   memoryId: string;

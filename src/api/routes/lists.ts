@@ -30,7 +30,7 @@ import {
   exportAllLists,
   ListType,
   SortType,
-} from '../../services/lists.js';
+} from '../../services/planning/lists.js';
 
 const router = Router();
 

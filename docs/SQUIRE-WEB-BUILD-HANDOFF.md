@@ -40,12 +40,26 @@ This document provides instructions for any agent (or human) picking up the Squi
 
 ## Starting a Session
 
-1. **Read Relevant Context**
+1. **Connect to Mandrel**
+   ```
+   project_switch squire
+   context_get_recent 5
+   ```
+
+2. **Check Current Task**
+   ```
+   task_list
+   ```
+   Find the next `todo` task in the current phase (P0, P1, etc.)
+
+3. **Read Relevant Context**
    - Review `SQUIRE-WEB-IMPLEMENTATION-PLAN.md` for task details
    - Check `SQUIRE-WEB-WIRING-DIAGRAM.md` for API dependencies
 
-3. **Find next task** (first `todo` in current phase from implementation plan)
-
+4. **Set Task In Progress**
+   ```
+   task_update taskId="<id>" status="in_progress"
+   ```
 
 ## During Development
 
@@ -79,14 +93,30 @@ This document provides instructions for any agent (or human) picking up the Squi
    - `P1-T2: Build chat UI components`
    - `P2-T4: Wire context to chat flow`
 
+5. **Update Mandrel Task**
+   ```
+   task_update taskId="<id>" status="completed"
+   ```
+
 ## Ending a Session
 
-1. **Update Implementation Plan** (if needed)
+1. **Store Handoff Context in Mandrel**
+   ```
+   context_store type="handoff" content="<handoff notes>"
+   ```
+   
+   Include:
+   - What was completed
+   - Current state of the build
+   - Any blockers or decisions made
+   - What should be done next
+
+2. **Update Implementation Plan** (if needed)
    - Mark checkboxes as completed
    - Add notes about deviations
    - Update estimates if tasks took longer/shorter
 
-2. **Update Wiring Diagram**
+3. **Update Wiring Diagram**
    - Add entry to UPDATE LOG
    - Update component/API status
 
@@ -130,13 +160,35 @@ Update the wiring diagram when you:
 
 ---
 
-# TASK LIFECYCLE
+# MANDREL WORKFLOW
+
+## Task Lifecycle
 
 ```
 todo → in_progress → completed
 ```
 
-Track task status in the implementation plan and wiring diagram.
+## Commands Reference
+
+| Action | Command |
+|--------|---------|
+| List tasks | `task_list` |
+| Start task | `task_update taskId="<id>" status="in_progress"` |
+| Complete task | `task_update taskId="<id>" status="completed"` |
+| Get task details | `task_details taskId="<id>"` |
+| Store context | `context_store type="<type>" content="<content>"` |
+| Get recent context | `context_get_recent <limit>` |
+| Search context | `context_search query="<query>"` |
+
+## Context Types
+
+| Type | When to Use |
+|------|-------------|
+| `handoff` | End of session, next agent pickup |
+| `completion` | Feature/task completed |
+| `decision` | Technical decision made |
+| `planning` | Planning notes |
+| `error` | Error encountered and resolution |
 
 ---
 
@@ -198,7 +250,7 @@ Document deviations in:
 
 # HANDOFF CONTEXT TEMPLATE
 
-When recording handoff notes, use this structure:
+When storing handoff context to Mandrel, use this structure:
 
 ```
 ## Session Summary
@@ -235,22 +287,32 @@ When recording handoff notes, use this structure:
 # 1. Navigate to project
 cd ~/projects/squire
 
-# 2. Find next task (first 'todo' in current phase)
-# 3. Read implementation plan for task details
+# 2. Check Mandrel for context
+project_switch squire
+context_get_recent 3
+task_list
 
-# 4. Start dev servers (once web app exists)
+# 3. Find next task (first 'todo' in current phase)
+# 4. Read implementation plan for task details
+# 5. Set task in_progress
+task_update taskId="<id>" status="in_progress"
+
+# 6. Start dev servers (once web app exists)
 cd web && pnpm dev      # Frontend on :3001
 cd .. && pnpm dev:api   # Backend on :3000
 
-# 5. Implement task
-# 6. Update wiring diagram
-# 7. Commit and push
+# 7. Implement task
+# 8. Update wiring diagram
+# 9. Commit and push
 git add .
 git commit -m "P<x>-T<y>: <description>"
 git push
 
-# 8. Update implementation plan (mark complete)
-# 9. Record handoff notes for next session
+# 10. Mark complete
+task_update taskId="<id>" status="completed"
+
+# 11. Store handoff (end of session)
+context_store type="handoff" content="..."
 ```
 
 ---
@@ -288,8 +350,9 @@ git push
 
 If blocked:
 1. Check existing docs and implementation plan
-2. Review prior decisions in project docs
-3. Document the issue in handoff notes
+2. Search Mandrel context for prior decisions
+3. Consult Oracle for technical guidance
+4. Document the issue in handoff context
 
 ---
 

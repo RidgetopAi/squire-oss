@@ -6,7 +6,7 @@ import {
   countMemories,
   deleteMemory,
   searchMemories,
-} from '../../services/memories.js';
+} from '../../services/knowledge/memories.js';
 
 const router = Router();
 

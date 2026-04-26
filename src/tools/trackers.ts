@@ -12,7 +12,7 @@ import {
   queryRecords,
   trackerSummary,
   archiveTracker,
-} from '../services/trackers.js';
+} from '../services/analytics/trackers.js';
 import type { ToolHandler, ToolSpec } from './types.js';
 
 // =============================================================================

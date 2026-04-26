@@ -6,7 +6,7 @@
  */
 
 import type { ToolSpec } from './types.js';
-import { getObjectById, getObjectData } from '../services/objects.js';
+import { getObjectById, getObjectData } from '../services/storage/objects.js';
 import { callLLM, type ImageContent } from '../services/llm/index.js';
 
 /**
@@ -81,7 +81,7 @@ async function listImages(args: unknown): Promise<string> {
   const { limit = 10 } = args as { limit?: number };
 
   // Import here to avoid circular dependency
-  const { listObjects } = await import('../services/objects.js');
+  const { listObjects } = await import('../services/storage/objects.js');
 
   const images = await listObjects({
     objectType: 'image',

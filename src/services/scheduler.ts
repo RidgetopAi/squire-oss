@@ -7,12 +7,12 @@ import {
   resetReminderForRetry,
   unsnoozeReminder,
   type Reminder,
-} from './reminders.js';
+} from './planning/reminders.js';
 import {
   sendReminderNotification,
   isPushConfigured,
 } from './push.js';
-import { getCommitment, expireCandidates } from './commitments.js';
+import { getCommitment, expireCandidates } from './planning/commitments.js';
 
 // ========================================
 // Types
