@@ -49,9 +49,17 @@ function isPrivateV6(addr: string): boolean {
       lower.startsWith('fea') || lower.startsWith('feb')) return true;
   if (lower.startsWith('fc') || lower.startsWith('fd')) return true; // ULA fc00::/7
   if (lower.startsWith('ff')) return true;                     // multicast ff00::/8
-  // IPv4-mapped IPv6 (::ffff:a.b.c.d) — extract and re-check
-  const v4Mapped = lower.match(/^::ffff:([0-9.]+)$/);
-  if (v4Mapped) return isPrivateV4(v4Mapped[1]!);
+  // IPv4-mapped IPv6: dotted form ::ffff:a.b.c.d, or the hex form
+  // ::ffff:HHHH:HHHH that Node's URL parser normalizes it into.
+  const v4MappedDotted = lower.match(/^::ffff:([0-9.]+)$/);
+  if (v4MappedDotted) return isPrivateV4(v4MappedDotted[1]!);
+  const v4MappedHex = lower.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (v4MappedHex) {
+    const high = parseInt(v4MappedHex[1]!, 16);
+    const low = parseInt(v4MappedHex[2]!, 16);
+    const dotted = `${(high >> 8) & 0xff}.${high & 0xff}.${(low >> 8) & 0xff}.${low & 0xff}`;
+    return isPrivateV4(dotted);
+  }
   return false;
 }
 
@@ -79,15 +87,21 @@ export async function assertPublicUrl(rawUrl: string): Promise<void> {
   }
 
   // Some clients pass an IP literal directly; skip DNS in that case.
+  // URL.hostname returns IPv6 literals wrapped in brackets ("[::1]"), but
+  // net.isIPv6 only matches the unbracketed form — strip them first so the
+  // IP-literal branch is taken (and validated against the private ranges)
+  // instead of falling through to a DNS lookup that fails for the wrong
+  // reason.
+  const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
   let address: string;
-  if (isIPv4(parsed.hostname) || isIPv6(parsed.hostname)) {
-    address = parsed.hostname;
+  if (isIPv4(hostname) || isIPv6(hostname)) {
+    address = hostname;
   } else {
     try {
-      const result = await dns.lookup(parsed.hostname);
+      const result = await dns.lookup(hostname);
       address = result.address;
     } catch (err) {
-      throw new Error(`URL refused: DNS lookup failed for ${parsed.hostname}`);
+      throw new Error(`URL refused: DNS lookup failed for ${hostname}`);
     }
   }
 

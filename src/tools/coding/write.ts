@@ -9,7 +9,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { FileWriteArgs } from './types.js';
-import { resolvePath } from './policies.js';
+import { resolveSafePath, PATH_TRAVERSAL_REFUSAL } from './policies.js';
 
 // === HANDLER ===
 
@@ -24,7 +24,10 @@ async function fileWrite(args: FileWriteArgs): Promise<string> {
     return 'Error: content is required';
   }
 
-  const resolvedPath = resolvePath(inputPath);
+  const resolvedPath = resolveSafePath(inputPath);
+  if (resolvedPath === null) {
+    return PATH_TRAVERSAL_REFUSAL;
+  }
 
   try {
     // Check if file exists (to report create vs overwrite)

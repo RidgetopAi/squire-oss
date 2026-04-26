@@ -64,6 +64,30 @@ export function isPathTraversal(
 }
 
 /**
+ * Resolve a path and reject it if it escapes the working directory.
+ * Convenience wrapper for tool handlers — returns either the resolved
+ * absolute path (safe) or null (refused). Handlers that get null should
+ * return a refusal message to the LLM, not throw.
+ *
+ * @param inputPath - The path from tool arguments
+ * @param workingDir - Base working directory (defaults to config)
+ * @returns Resolved absolute path if safe, null if it escapes
+ */
+export function resolveSafePath(
+  inputPath: string,
+  workingDir: string = config.coding.workingDirectory,
+): string | null {
+  if (isPathTraversal(inputPath, workingDir)) {
+    return null;
+  }
+  return resolvePath(inputPath, workingDir);
+}
+
+/** Standard refusal message for traversal rejections. */
+export const PATH_TRAVERSAL_REFUSAL =
+  'Error: path refused — outside the working directory (path traversal blocked).';
+
+/**
  * Check if a command matches any blocked patterns.
  *
  * @param command - The bash command to check

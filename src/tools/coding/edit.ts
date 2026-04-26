@@ -8,7 +8,7 @@
 import * as fs from 'fs/promises';
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { FileEditArgs } from './types.js';
-import { resolvePath, generateDiff } from './policies.js';
+import { resolveSafePath, PATH_TRAVERSAL_REFUSAL, generateDiff } from './policies.js';
 
 // === HANDLER ===
 
@@ -31,7 +31,10 @@ async function fileEdit(args: FileEditArgs): Promise<string> {
     return 'Error: old_string and new_string are identical';
   }
 
-  const resolvedPath = resolvePath(inputPath);
+  const resolvedPath = resolveSafePath(inputPath);
+  if (resolvedPath === null) {
+    return PATH_TRAVERSAL_REFUSAL;
+  }
 
   try {
     // Read the file

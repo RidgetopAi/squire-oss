@@ -233,7 +233,9 @@ import { tools as jobTools } from './jobs.js';
 import { tools as browserTools } from './browser/index.js';
 
 // Always-on tools — safe for any deployment.
-const safeToolSpecs: ToolSpec[] = [
+// Exported for tests; the security boundary is the contents of these
+// two arrays, so tests assert directly against them.
+export const safeToolSpecs: ToolSpec[] = [
   ...timeTools,
   ...notesTools,
   ...listsTools,
@@ -270,10 +272,10 @@ const safeToolSpecs: ToolSpec[] = [
 // Default OFF. Operators who understand the threat can opt in by
 // setting SQUIRE_ENABLE_DANGEROUS_TOOLS=true in .env. The README and
 // SECURITY.md document the consequences.
-const dangerousToolSpecs: ToolSpec[] = [
-  ...codingTools,   // bash, claude_code, file_read/write/edit
-  ...sandboxTools,  // ephemeral sandbox + Claude Code dispatch
-  ...browserTools,  // playwright-cli driven browser automation
+export const dangerousToolSpecs: ToolSpec[] = [
+  ...codingTools,   // bash_execute, claude_code, file_read/write/edit, grep_search, glob_files, git_operations
+  ...sandboxTools,  // sandbox, sandbox_cleanup
+  ...browserTools,  // browser_* (playwright-cli driven)
 ];
 
 const dangerousEnabled = process.env.SQUIRE_ENABLE_DANGEROUS_TOOLS === 'true';

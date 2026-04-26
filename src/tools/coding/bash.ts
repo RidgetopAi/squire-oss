@@ -10,7 +10,7 @@ import { promisify } from 'util';
 import { config } from '../../config/index.js';
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { BashArgs } from './types.js';
-import { resolvePath, isBlockedCommand, truncateOutput } from './policies.js';
+import { resolveSafePath, PATH_TRAVERSAL_REFUSAL, isBlockedCommand, truncateOutput } from './policies.js';
 
 const execAsync = promisify(exec);
 
@@ -36,9 +36,16 @@ The command "${command.substring(0, 50)}${command.length > 50 ? '...' : ''}" mat
 If you believe this is a false positive, please reconsider the command or ask for assistance.`;
   }
 
-  const workingDir = cwd
-    ? resolvePath(cwd)
-    : config.coding.workingDirectory;
+  let workingDir: string;
+  if (cwd) {
+    const safe = resolveSafePath(cwd);
+    if (safe === null) {
+      return PATH_TRAVERSAL_REFUSAL;
+    }
+    workingDir = safe;
+  } else {
+    workingDir = config.coding.workingDirectory;
+  }
 
   // Enforce maximum timeout (10 minutes)
   const effectiveTimeout = Math.min(timeout, 600000);

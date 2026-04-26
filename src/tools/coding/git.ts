@@ -10,7 +10,7 @@ import { promisify } from 'util';
 import { config } from '../../config/index.js';
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { GitArgs, GitOperation } from './types.js';
-import { resolvePath, truncateOutput } from './policies.js';
+import { resolveSafePath, PATH_TRAVERSAL_REFUSAL, truncateOutput } from './policies.js';
 
 const execAsync = promisify(exec);
 
@@ -23,9 +23,16 @@ async function gitOperations(args: GitArgs): Promise<string> {
     return 'Error: operation is required';
   }
 
-  const workingDir = cwd
-    ? resolvePath(cwd)
-    : config.coding.workingDirectory;
+  let workingDir: string;
+  if (cwd) {
+    const safe = resolveSafePath(cwd);
+    if (safe === null) {
+      return PATH_TRAVERSAL_REFUSAL;
+    }
+    workingDir = safe;
+  } else {
+    workingDir = config.coding.workingDirectory;
+  }
 
   // Build the git command based on operation
   let command: string;

@@ -11,7 +11,7 @@ import * as path from 'path';
 import { config } from '../../config/index.js';
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { GrepArgs } from './types.js';
-import { resolvePath, truncateOutput } from './policies.js';
+import { resolveSafePath, PATH_TRAVERSAL_REFUSAL, truncateOutput } from './policies.js';
 
 const execAsync = promisify(exec);
 
@@ -31,9 +31,16 @@ async function grepSearch(args: GrepArgs): Promise<string> {
     return 'Error: pattern is required';
   }
 
-  const resolvedPath = searchPath
-    ? resolvePath(searchPath)
-    : config.coding.workingDirectory;
+  let resolvedPath: string;
+  if (searchPath) {
+    const safe = resolveSafePath(searchPath);
+    if (safe === null) {
+      return PATH_TRAVERSAL_REFUSAL;
+    }
+    resolvedPath = safe;
+  } else {
+    resolvedPath = config.coding.workingDirectory;
+  }
 
   // Check if ripgrep is available
   const hasRg = await checkRipgrep();

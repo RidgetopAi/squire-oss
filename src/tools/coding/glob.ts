@@ -11,7 +11,7 @@ import * as path from 'path';
 import { config } from '../../config/index.js';
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { GlobArgs } from './types.js';
-import { resolvePath } from './policies.js';
+import { resolveSafePath, PATH_TRAVERSAL_REFUSAL } from './policies.js';
 
 // === HANDLER ===
 
@@ -22,9 +22,16 @@ async function globFiles(args: GlobArgs): Promise<string> {
     return 'Error: pattern is required';
   }
 
-  const resolvedBase = basePath
-    ? resolvePath(basePath)
-    : config.coding.workingDirectory;
+  let resolvedBase: string;
+  if (basePath) {
+    const safe = resolveSafePath(basePath);
+    if (safe === null) {
+      return PATH_TRAVERSAL_REFUSAL;
+    }
+    resolvedBase = safe;
+  } else {
+    resolvedBase = config.coding.workingDirectory;
+  }
 
   try {
     // Check if base path exists
