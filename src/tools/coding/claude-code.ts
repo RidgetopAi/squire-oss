@@ -1,17 +1,22 @@
 /**
  * Claude Code Tool
  *
- * Execute coding tasks via Claude Code headless mode on VPS.
- * Uses Max subscription for inference, maintains session continuity.
+ * Execute coding tasks via the Claude Code CLI in headless mode.
+ * Maintains session continuity across calls.
  *
  * Architecture:
- * - Squire (Sonnet 4.6 API) = Orchestrator + Chat + Memory
- * - Claude Code (Max sub) = Coding Worker with full tooling
+ * - Squire = Orchestrator + Chat + Memory
+ * - Claude Code (CLI) = Coding worker with full file/git tooling
+ *
+ * SECURITY NOTE: this tool spawns the `claude` CLI with prompt-derived
+ * arguments and `--dangerously-skip-permissions`. It is gated behind
+ * SQUIRE_ENABLE_DANGEROUS_TOOLS in the tool registry — do not register
+ * it in untrusted deployments.
  */
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { existsSync, writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync } from 'fs';
 import type { ToolHandler, ToolSpec } from '../types.js';
 import type { ClaudeCodeArgs, ClaudeCodeResult } from './types.js';
 
@@ -20,26 +25,14 @@ const execAsync = promisify(exec);
 // UUID validation regex
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Default configuration
+// Default configuration. CODING_WORKING_DIR can be set in .env to change
+// the default project root for claude_code invocations; otherwise, the
+// process working directory is used.
 const DEFAULTS = {
-  workingDir: '/opt/projects',
+  workingDir: process.env.CODING_WORKING_DIR ?? process.cwd(),
   model: 'sonnet',
   timeout: 900000, // 15 minutes
-  vpsUser: 'ridgetop',
-  sshHost: 'hetzner',
 };
-
-/**
- * Check if we're running on the VPS (no need to SSH)
- */
-function isRunningOnVPS(): boolean {
-  // Check for VPS-specific indicators
-  const hostname = process.env.HOSTNAME || '';
-  const hasSquireDir = existsSync('/opt/squire');
-  const hasVPSMarker = existsSync('/etc/systemd/system/squire.service');
-
-  return hostname.includes('ubuntu') || hasSquireDir || hasVPSMarker;
-}
 
 /**
  * Validate and get session ID
@@ -90,7 +83,7 @@ function parseClaudeCodeOutput(output: string): ClaudeCodeResult {
 }
 
 /**
- * Execute Claude Code on VPS
+ * Execute Claude Code locally
  */
 async function claudeCode(args: ClaudeCodeArgs): Promise<string> {
   const { prompt, workingDir, sessionId: providedSessionId, model, timeout } = args;
@@ -119,24 +112,10 @@ async function claudeCode(args: ClaudeCodeArgs): Promise<string> {
     `--model ${effectiveModel}`,
   ].join(' ');
 
-  // Determine if we're on VPS or need to SSH
-  const onVPS = isRunningOnVPS();
-  let command: string;
-
-  if (onVPS) {
-    // Running on VPS - execute directly as ridgetop user
-    // Use 'script' to provide a PTY (Claude Code needs TTY for output)
-    // No single quotes in innerCommand so no escaping needed
-    const innerCommand = `cd ${effectiveWorkingDir} && ${claudeCommand} < ${tmpPromptFile}`;
-    command = `script -q -c "sudo -u ${DEFAULTS.vpsUser} bash -c '${innerCommand}'" /dev/null`;
-    console.log(`[claude_code] Executing LOCALLY on VPS: ${effectiveWorkingDir}`);
-  } else {
-    // Running remotely - copy prompt file to VPS first, then execute
-    await execAsync(`scp ${tmpPromptFile} ${DEFAULTS.sshHost}:${tmpPromptFile}`);
-    command = `ssh ${DEFAULTS.sshHost} 'sudo -u ${DEFAULTS.vpsUser} bash -c "cd ${effectiveWorkingDir} && ${claudeCommand} < ${tmpPromptFile} ; rm -f ${tmpPromptFile}"'`;
-    console.log(`[claude_code] Executing via SSH to VPS: ${effectiveWorkingDir}`);
-  }
-
+  // Local execution: run Claude Code in the configured working directory.
+  // Use `script` to provide a PTY (Claude Code needs TTY for output).
+  const command = `script -q -c "cd ${effectiveWorkingDir} && ${claudeCommand} < ${tmpPromptFile}" /dev/null`;
+  console.log(`[claude_code] Executing locally: ${effectiveWorkingDir}`);
   console.log(`[claude_code] Session: ${sessionId}`);
   console.log(`[claude_code] Model: ${effectiveModel}`);
 
@@ -144,12 +123,6 @@ async function claudeCode(args: ClaudeCodeArgs): Promise<string> {
     const { stdout, stderr } = await execAsync(command, {
       timeout: effectiveTimeout,
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large outputs
-      env: {
-        ...process.env,
-        // Ensure SSH doesn't hang on prompts
-        SSH_ASKPASS: '',
-        GIT_ASKPASS: '',
-      },
     });
 
     // Debug logging
@@ -212,9 +185,9 @@ async function claudeCode(args: ClaudeCodeArgs): Promise<string> {
 
 export const tools: ToolSpec[] = [{
   name: 'claude_code',
-  description: `Execute coding tasks using Claude Code on VPS.
+  description: `Execute coding tasks using the Claude Code CLI.
 
-This tool dispatches complex coding work to Claude Code running on the VPS with:
+This tool dispatches complex coding work to a local Claude Code session with:
 - Full file system access
 - Git operations
 - Code editing and creation
@@ -238,7 +211,7 @@ Each call generates a fresh session. To resume a previous session, pass a valid 
       },
       workingDir: {
         type: 'string',
-        description: 'Working directory on VPS (default: /opt/projects). Can be any path like /opt/squire for specific projects.',
+        description: 'Working directory for the session. Defaults to CODING_WORKING_DIR or process cwd. Can be set to any project path.',
       },
       sessionId: {
         type: 'string',

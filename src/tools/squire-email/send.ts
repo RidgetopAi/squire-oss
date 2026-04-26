@@ -13,7 +13,7 @@ async function squireEmailSendToolHandler(args: {
 
     const msg = await agentmail.sendMessage(args.to, args.subject, args.text);
 
-    return `Email sent from squire@agentmail.to to ${args.to}.\nMessage ID: ${msg.message_id}`;
+    return `Email sent to ${args.to}.\nMessage ID: ${msg.message_id}`;
   } catch (error) {
     return `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
   }
@@ -22,7 +22,7 @@ async function squireEmailSendToolHandler(args: {
 export const tools: ToolSpec[] = [
   {
     name: 'squire_email_send',
-    description: 'Send an email from Squire\'s AgentMail address (squire@agentmail.to). Requires recipient, subject, and message text.',
+    description: 'Send an email from Squire\'s configured AgentMail address. Requires recipient, subject, and message text.',
     parameters: {
       type: 'object',
       properties: {

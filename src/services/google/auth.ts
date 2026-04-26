@@ -4,7 +4,7 @@ import { pool } from '../../db/pool.js';
 // Environment variables for Google OAuth
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'https://squire.ridgetopai.net/api/integrations/google/callback';
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/integrations/google/callback';
 
 // Scopes needed for Calendar and Gmail access
 const GOOGLE_SCOPES = [

@@ -81,7 +81,6 @@ export function shouldSkipFilter(content: string): boolean {
   const workPatterns = [
     /\buser'?s?\s+work\b/i,
     /\buser'?s?\s+(job|role|position|career)\b/i,
-    /\bflooring\s+(rep|representative|sales)\b/i,
     /\bclient|customer|account\b/i,
   ];
 

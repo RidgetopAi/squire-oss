@@ -71,14 +71,24 @@ function isIdentityContent(content: string): boolean {
     /the user works at/i,
     /the user (?:is|has|works|lives)/i,
 
-    // Name-based patterns (for memories created before identity-first fix)
-    // These catch "Brian's wife is...", "Brian created...", etc.
-    /Brian'?s?\s+(?:wife|husband|spouse|partner|child|children|daughter|son|mother|father|family)/i,
-    /Brian\s+(?:is|has|works|lives|created|built|developed)/i,
-    /Brian\s+is\s+(?:a\s+)?\d+\s*(?:years?\s*old)?/i,
-    /Brian\s+works\s+(?:at|for|on)/i,
   ];
-  return identityPatterns.some(pattern => pattern.test(content));
+  if (identityPatterns.some(pattern => pattern.test(content))) return true;
+
+  // Name-based patterns: if USER_NAME is set, also catch memories mentioning
+  // the user by name (e.g. "Alex's wife is...", "Alex created...").
+  const userName = process.env.USER_NAME?.trim();
+  if (userName && /^[A-Za-z][A-Za-z'-]{1,40}$/.test(userName)) {
+    const escaped = userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const namePatterns = [
+      new RegExp(`${escaped}'?s?\\s+(?:wife|husband|spouse|partner|child|children|daughter|son|mother|father|family)`, 'i'),
+      new RegExp(`${escaped}\\s+(?:is|has|works|lives|created|built|developed)`, 'i'),
+      new RegExp(`${escaped}\\s+is\\s+(?:a\\s+)?\\d+\\s*(?:years?\\s*old)?`, 'i'),
+      new RegExp(`${escaped}\\s+works\\s+(?:at|for|on)`, 'i'),
+    ];
+    if (namePatterns.some(p => p.test(content))) return true;
+  }
+
+  return false;
 }
 
 /**

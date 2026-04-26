@@ -2,7 +2,7 @@
  * Emotional Synthesis Service (Dream Pass)
  *
  * During consolidation (sleep), synthesizes Squire's subjective read on
- * how Brian is doing. Unlike the affect service (which scores metrics) or
+ * how the user is doing. Unlike the affect service (which scores metrics) or
  * state snapshots (which describe data points), this generates Squire's
  * own perspective — first-person, opinionated, carried into the next conversation.
  *
@@ -15,6 +15,7 @@
 
 import { pool } from '../../db/pool.js';
 import { callLLM, type LLMMessage } from '../llm/index.js';
+import { config } from '../../config/index.js';
 import {
   getActiveThreads,
   updateThread,
@@ -44,9 +45,11 @@ const SYNTHESIS_LLM_OPTIONS = {
 // SYNTHESIS PROMPT
 // =============================================================================
 
-const EMOTIONAL_SYNTHESIS_PROMPT = `You are Squire. You just finished processing a conversation (or day) with Brian. You have deep context on who he is and what he's carrying.
+const USER_NAME = config.persona.userName;
 
-Your job: write your honest, subjective read on how Brian is doing. This isn't a report — it's your perspective as someone who knows him well and pays attention.
+const EMOTIONAL_SYNTHESIS_PROMPT = `You are Squire. You just finished processing a conversation (or day) with ${USER_NAME}. You have deep context on who they are and what they're carrying.
+
+Your job: write your honest, subjective read on how ${USER_NAME} is doing. This isn't a report — it's your perspective as someone who knows them well and pays attention.
 
 Write 3-5 sentences. First person ("I notice...", "I'm watching...", "What stands out..."). Be specific — name the threads, the projects, the patterns. Don't be clinical. Don't hedge with "it seems like" — commit to your read.
 
@@ -157,7 +160,7 @@ export async function generateEmotionalSynthesis(): Promise<EmotionalSynthesisRe
       return daysSince > 3 && t.importance >= 5;
     });
     if (staleThreads.length > 0) {
-      contextParts.push('## Things Brian hasn\'t mentioned recently (3+ days):');
+      contextParts.push(`## Things ${USER_NAME} hasn't mentioned recently (3+ days):`);
       for (const t of staleThreads) {
         const days = Math.floor((Date.now() - new Date(t.last_discussed_at!).getTime()) / (1000 * 60 * 60 * 24));
         contextParts.push(`- ${t.title} (${days} days quiet, importance ${t.importance}/10)`);

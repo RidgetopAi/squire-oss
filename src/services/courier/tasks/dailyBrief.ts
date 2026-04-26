@@ -7,7 +7,7 @@
  * 1. It's 7:00 AM (within the current hour)
  * 2. It hasn't already sent today
  *
- * This ensures Brian gets exactly one daily brief per day.
+ * This ensures the user gets exactly one daily brief per day.
  */
 
 import { config } from '../../../config/index.js';

@@ -1,7 +1,7 @@
 /**
  * Commune Tools
  *
- * Tool for the commune agent to send messages to Brian via Telegram.
+ * Tool for the commune agent to send messages to the user via Telegram.
  * This is NOT a courier task - it's a tool the model can call during commune thinking.
  */
 
@@ -63,13 +63,13 @@ export const tools: ToolSpec[] = [
   {
     name: 'commune_send',
     description:
-      'Send a message to Brian via Telegram. Use sparingly and only when you have something genuine to share. Rate limits are enforced.',
+      'Send a message to the user via Telegram. Use sparingly and only when you have something genuine to share. Rate limits are enforced.',
     parameters: {
       type: 'object',
       properties: {
         message: {
           type: 'string',
-          description: 'The message to send to Brian',
+          description: 'The message to send to the user',
         },
       },
       required: ['message'],

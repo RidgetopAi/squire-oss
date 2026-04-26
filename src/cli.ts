@@ -1029,7 +1029,7 @@ program
 program
   .command('reclassify-identity')
   .description('Reclassify memories mentioning user by name (one-time migration)')
-  .option('-n, --name <name>', 'User name to search for', 'Brian')
+  .option('-n, --name <name>', 'User name to search for', process.env.USER_NAME || '')
   .option('-l, --limit <limit>', 'Maximum memories to process', '100')
   .option('--dry-run', 'Show what would be reclassified without doing it')
   .option('--regenerate', 'Also regenerate personality summary after reclassification')

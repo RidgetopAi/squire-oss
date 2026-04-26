@@ -67,7 +67,7 @@ export const tools: ToolSpec[] = [
   {
     name: 'preference_update',
     description:
-      'Update a self-tuning preference about working style. Preferences help you remember how Brian likes things done.',
+      'Update a self-tuning preference about working style. Preferences help you remember how the user likes things done.',
     parameters: {
       type: 'object',
       properties: {

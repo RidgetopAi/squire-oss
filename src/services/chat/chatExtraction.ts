@@ -274,7 +274,7 @@ Treat this conversation as a small episode. Extract only the KEY TAKEAWAYS - thi
 For each memory, add a "confidence" field indicating how certain/stable the information is:
 
 - 0.9-1.0: DEFINITELY TRUE - explicitly stated, stable facts, core identity
-  Examples: "My name is Brian", "I'm 56 years old", "I work at TechCorp"
+  Examples: "My name is Alex", "I'm 34 years old", "I work at TechCorp"
   
 - 0.7-0.9: LIKELY TRUE - clearly implied, strong decisions, clear intent
   Examples: "I've decided to take the job", "We're moving to Austin next month"
@@ -299,7 +299,7 @@ For each memory, add a "confidence" field indicating how certain/stable the info
 - Repetitive back-and-forth
 
 === IDENTITY EXTRACTION (always highest priority) ===
-When the user introduces themselves (e.g., "I'm Brian", "My name is Sarah"):
+When the user introduces themselves (e.g., "I'm Alex", "My name is Sarah"):
 → Extract: "The user's name is [NAME]" with salience_hint: 10, confidence: 0.95
 Key relationships with names:
 → "My wife is Sarah" → salience_hint: 8, confidence: 0.9
@@ -320,13 +320,13 @@ Output:
 (Reason: No durable takeaways - just mid-process debugging)
 
 Example episode (personal + conclusion):
-User: Hello I'm Brian
+User: Hello I'm Alex
 User: I've been thinking about whether to take that new job
 User: You know what, I've decided I'm going to accept the offer at TechCorp
 
 Output:
 [
-  {"content": "The user's name is Brian", "type": "fact", "salience_hint": 10, "confidence": 0.95},
+  {"content": "The user's name is Alex", "type": "fact", "salience_hint": 10, "confidence": 0.95},
   {"content": "The user has decided to accept a job offer at TechCorp", "type": "decision", "salience_hint": 8, "confidence": 0.85}
 ]
 (Reason: Identity is near-certain; decision is strong but could theoretically change)
@@ -1061,14 +1061,14 @@ Your job is to determine:
 2. If so, what is the name?
 
 IMPORTANT DISTINCTIONS:
-- "I'm Brian" = YES, user is introducing themselves as "Brian"
+- "I'm Alex" = YES, user is introducing themselves as "Alex"
 - "I'm confident we fixed it" = NO, "confident" is an adjective, not a name
-- "I'm originally from Indiana" = NO, "originally" is an adverb, not a name
+- "I'm originally from Portland" = NO, "originally" is an adverb, not a name
 - "My name is Sarah" = YES, user is introducing themselves as "Sarah"
 - "I'm so tired" = NO, "tired" is describing a state, not a name
 - "I'm a developer" = NO, describing profession, not introducing name
-- "Hello, I'm Brian from accounting" = YES, user is introducing themselves as "Brian"
-- "I'm 56 years old" = NO, stating age, not name
+- "Hello, I'm Alex from accounting" = YES, user is introducing themselves as "Alex"
+- "I'm 34 years old" = NO, stating age, not name
 - "Actually, I'm Robert" = YES, user is correcting/stating their name as "Robert"
 - "I'm excited to help" = NO, expressing emotion, not introducing name
 - "I'm working on it" = NO, describing activity, not introducing name
@@ -1087,16 +1087,16 @@ Return JSON:
 }
 
 Examples:
-Input: "Hey there, I'm Brian"
-Output: {"is_self_introduction": true, "name": "Brian", "confidence": 0.95, "reasoning": "User greeting with name introduction"}
+Input: "Hey there, I'm Alex"
+Output: {"is_self_introduction": true, "name": "Alex", "confidence": 0.95, "reasoning": "User greeting with name introduction"}
 
 Input: "I'm confident this time we got it fixed"
 Output: {"is_self_introduction": false, "name": null, "confidence": 0.98, "reasoning": "'confident' is an adjective describing certainty, not a name"}
 
-Input: "I'm originally from Indiana"
+Input: "I'm originally from Portland"
 Output: {"is_self_introduction": false, "name": null, "confidence": 0.99, "reasoning": "'originally' is an adverb describing origin, not a name"}
 
-Input: "Actually my name is Robert, not Brian"
+Input: "Actually my name is Robert, not Alex"
 Output: {"is_self_introduction": true, "name": "Robert", "confidence": 0.95, "reasoning": "User correcting their name to Robert"}
 
 IMPORTANT: Return ONLY valid JSON, no markdown, no explanation outside the JSON.`;

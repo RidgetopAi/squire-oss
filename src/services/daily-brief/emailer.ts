@@ -82,7 +82,7 @@ export async function sendHtmlEmail(
 /**
  * Get the primary Google account for sending daily briefs
  *
- * Returns the first sync-enabled Google account, which should be Brian's account.
+ * Returns the first sync-enabled Google account.
  */
 export async function getPrimaryAccount(): Promise<{ id: string; email: string } | null> {
   try {

@@ -210,7 +210,7 @@ export const tools: ToolSpec[] = [
   {
     name: 'create_tracker',
     description:
-      'Create a new tracker with defined fields for structured data tracking. Use this when Brian wants to start tracking something new with specific data fields (e.g., sales pipeline, project punch list, contact list, campaign tracker). Think of this as creating a lightweight database table for a specific situation.',
+      'Create a new tracker with defined fields for structured data tracking. Use this when the user wants to start tracking something new with specific data fields (e.g., sales pipeline, project punch list, contact list, campaign tracker). Think of this as creating a lightweight database table for a specific situation.',
     parameters: {
       type: 'object',
       properties: {
@@ -275,7 +275,7 @@ export const tools: ToolSpec[] = [
   {
     name: 'list_trackers',
     description:
-      'List all active trackers. Use when Brian asks what trackers exist, what he\'s tracking, or wants an overview of his tracking systems.',
+      'List all active trackers. Use when the user asks what trackers exist, what he\'s tracking, or wants an overview of his tracking systems.',
     parameters: {
       type: 'object',
       properties: {
@@ -291,7 +291,7 @@ export const tools: ToolSpec[] = [
   {
     name: 'add_tracker_record',
     description:
-      'Add a new record/entry to a tracker. Use when Brian says things like "add [dealer name] to March Padness", "log a new entry", or provides data to track. The data object should contain field values matching the tracker\'s field definitions.',
+      'Add a new record/entry to a tracker. Use when the user says things like "add [dealer name] to March Padness", "log a new entry", or provides data to track. The data object should contain field values matching the tracker\'s field definitions.',
     parameters: {
       type: 'object',
       properties: {
@@ -332,7 +332,7 @@ export const tools: ToolSpec[] = [
   {
     name: 'update_tracker_record',
     description:
-      'Update an existing tracker record. Use when Brian says "mark [dealer] as closed", "update the amount for [dealer]", or wants to change data in an existing record. You need the record ID from a previous query.',
+      'Update an existing tracker record. Use when the user says "mark [dealer] as closed", "update the amount for [dealer]", or wants to change data in an existing record. You need the record ID from a previous query.',
     parameters: {
       type: 'object',
       properties: {
@@ -373,7 +373,7 @@ export const tools: ToolSpec[] = [
   {
     name: 'query_tracker',
     description:
-      'Query and filter records in a tracker. Use when Brian asks questions like "who haven\'t I contacted?", "show me all closed deals", "what\'s still open?", "show me my March Padness tracker". This is the main tool for answering questions about tracker data.',
+      'Query and filter records in a tracker. Use when the user asks questions like "who haven\'t I contacted?", "show me all closed deals", "what\'s still open?", "show me my March Padness tracker". This is the main tool for answering questions about tracker data.',
     parameters: {
       type: 'object',
       properties: {
@@ -410,7 +410,7 @@ export const tools: ToolSpec[] = [
   {
     name: 'tracker_summary',
     description:
-      'Get aggregate statistics and summary for a tracker. Use when Brian wants a high-level overview: total records, breakdown by status, recent activity, etc. Great for answering "how\'s my [tracker] looking?" or "give me a summary of [tracker]".',
+      'Get aggregate statistics and summary for a tracker. Use when the user wants a high-level overview: total records, breakdown by status, recent activity, etc. Great for answering "how\'s my [tracker] looking?" or "give me a summary of [tracker]".',
     parameters: {
       type: 'object',
       properties: {
@@ -426,7 +426,7 @@ export const tools: ToolSpec[] = [
   {
     name: 'archive_tracker',
     description:
-      'Archive a tracker when it\'s no longer needed. Use when Brian says the tracker is done, completed, or he wants to remove it from active tracking.',
+      'Archive a tracker when it\'s no longer needed. Use when the user says the tracker is done, completed, or he wants to remove it from active tracking.',
     parameters: {
       type: 'object',
       properties: {

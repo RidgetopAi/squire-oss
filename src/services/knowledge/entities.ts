@@ -386,7 +386,7 @@ Is this the SAME PERSON as any of these existing entities?
 
 Rules:
 - If the relationship context matches (e.g., both "brother-in-law"), it's the SAME person
-- If the relationship context conflicts (e.g., "brother-in-law" vs "flooring dealer"), it's DIFFERENT
+- If the relationship context conflicts (e.g., "brother-in-law" vs "vendor contact"), it's DIFFERENT
 - If unclear, default to SAME unless strong evidence of difference
 
 Respond with ONLY one of:
@@ -457,9 +457,9 @@ async function llmDisambiguate(
 /**
  * Disambiguate a new entity mention against existing candidates
  *
- * Handles the "two Ricks" problem:
- * - Rick (brother-in-law) vs Rick (flooring dealer) should be separate
- * - Multiple mentions of Rick (brother-in-law) should link to same entity
+ * Handles the "two Alexes" problem:
+ * - Alex (brother-in-law) vs Alex (vendor) should be separate
+ * - Multiple mentions of Alex (brother-in-law) should link to same entity
  *
  * @param newEntity - The newly extracted entity
  * @param candidates - Existing entities with same name and type
@@ -733,8 +733,8 @@ function canonicalize(name: string): string {
  * - Uses disambiguateEntity() to determine if truly same person
  * - Creates new entity with distinguishing info if different person
  *
- * Handles the "two Ricks" problem:
- * - "Rick (brother-in-law)" and "Rick (flooring dealer)" stay separate
+ * Handles the "two Alexes" problem:
+ * - "Alex (brother-in-law)" and "Alex (vendor)" stay separate
  */
 export async function getOrCreateEntity(
   extracted: ExtractedEntity | ExtractedEntityWithRelationship
@@ -793,7 +793,7 @@ export async function getOrCreateEntity(
   // Build aliases array for disambiguation (T3-04)
   const aliases: string[] = [];
   if (relationshipType) {
-    // Add relationship-qualified alias: "Rick (brother-in-law)"
+    // Add relationship-qualified alias: "Alex (brother-in-law)"
     aliases.push(`${extracted.name} (${relationshipType})`);
   }
 

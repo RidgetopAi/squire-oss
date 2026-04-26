@@ -18,6 +18,14 @@ export const config = {
   // Auto-detect timezone from system
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 
+  // Persona — who the user is. Squire personalizes responses around these.
+  // PERSONA_FILE points to a markdown file describing the user
+  // (see prompts/persona.example.md as a template).
+  persona: {
+    file: optional('PERSONA_FILE', './prompts/persona.example.md'),
+    userName: optional('USER_NAME', 'the user'),
+  },
+
   database: {
     url: required('DATABASE_URL'),
   },
@@ -119,7 +127,8 @@ export const config = {
   },
   agentmail: {
     apiKey: process.env['AGENTMAIL_API_KEY'] ?? '',
-    inboxId: 'squireagent@agentmail.to',
+    baseUrl: optional('AGENTMAIL_BASE_URL', 'https://api.agentmail.to/v0'),
+    inboxId: process.env['AGENTMAIL_INBOX_ID'] ?? '',
   },
   recall: {
     userStopwords: (process.env['RECALL_USER_STOPWORDS'] ?? '').split(',').filter(Boolean),

@@ -58,7 +58,7 @@ export const tools: ToolSpec[] = [
   {
     name: 'lesson_store',
     description:
-      'Store a lesson learned from experience. Use when you discover a pattern that worked, a mistake to avoid, a correction from Brian, or a technical insight worth remembering.',
+      'Store a lesson learned from experience. Use when you discover a pattern that worked, a mistake to avoid, a correction from the user, or a technical insight worth remembering.',
     parameters: {
       type: 'object',
       properties: {

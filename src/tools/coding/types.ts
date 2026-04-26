@@ -111,7 +111,7 @@ export interface GitArgs {
 export interface ClaudeCodeArgs {
   /** The task/prompt for Claude Code to execute */
   prompt: string;
-  /** Working directory on VPS (default: /opt/projects) */
+  /** Working directory for the session (default: CODING_WORKING_DIR or process cwd) */
   workingDir?: string;
   /** Session ID for continuity within conversation */
   sessionId?: string;

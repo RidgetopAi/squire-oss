@@ -1,19 +1,23 @@
 /**
  * Sandbox Tool
  *
- * Ephemeral workspaces on VPS for one-off builds, scripts, and artifacts.
+ * Ephemeral local workspaces for one-off builds, scripts, and artifacts.
  * Supports both sync (block until done) and async (return immediately,
  * notify via Telegram when complete) modes.
  *
  * Sandbox directories live at /tmp/squire-sandbox-[uuid]/ and are
  * explicitly cleaned up via sandbox_cleanup.
+ *
+ * SECURITY NOTE: this tool spawns child processes with prompt-derived
+ * arguments. It is gated behind SQUIRE_ENABLE_DANGEROUS_TOOLS in the
+ * tool registry — do not register it in untrusted deployments.
  */
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { existsSync, writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync } from 'fs';
 import type { ToolHandler, ToolSpec } from './types.js';
 import { createJob, completeJob, failJob } from '../services/jobs.js';
 
@@ -24,37 +28,18 @@ const MAX_TIMEOUT = 900000; // 15 minutes
 const DEFAULT_TIMEOUT = 600000; // 10 minutes
 const MAX_INLINE_SIZE = 16384; // 16KB — files smaller than this get returned inline
 
-// --- VPS detection (same logic as claude-code.ts) ---
-
-function isRunningOnVPS(): boolean {
-  const hostname = process.env.HOSTNAME || '';
-  return hostname.includes('ubuntu') || existsSync('/opt/squire') || existsSync('/etc/systemd/system/squire.service');
-}
-
-// --- Sandbox lifecycle ---
+// --- Sandbox lifecycle (local execution only) ---
 
 async function createSandbox(): Promise<string> {
   const id = crypto.randomUUID();
   const sandboxPath = `${SANDBOX_PREFIX}${id}`;
-
-  if (isRunningOnVPS()) {
-    await execAsync(`mkdir -p ${sandboxPath} && chown ridgetop:ridgetop ${sandboxPath}`);
-  } else {
-    await execAsync(`ssh hetzner "mkdir -p ${sandboxPath} && chown ridgetop:ridgetop ${sandboxPath}"`);
-  }
-
+  await execAsync(`mkdir -p ${sandboxPath}`);
   return sandboxPath;
 }
 
 export async function listSandboxFiles(sandboxPath: string): Promise<Array<{ path: string; size: number; sizeStr: string }>> {
   const cmd = `find ${sandboxPath} -type f -not -name '.claude*' -printf '%P\\t%s\\n' 2>/dev/null | sort`;
-
-  let stdout: string;
-  if (isRunningOnVPS()) {
-    ({ stdout } = await execAsync(cmd));
-  } else {
-    ({ stdout } = await execAsync(`ssh hetzner "${cmd}"`));
-  }
+  const { stdout } = await execAsync(cmd);
 
   if (!stdout.trim()) return [];
 
@@ -70,15 +55,7 @@ export async function listSandboxFiles(sandboxPath: string): Promise<Array<{ pat
 }
 
 async function readRemoteFile(filePath: string): Promise<string> {
-  if (isRunningOnVPS()) {
-    const content = await fs.readFile(filePath, 'utf-8');
-    return content;
-  } else {
-    const { stdout } = await execAsync(`ssh hetzner "cat '${filePath}'"`, {
-      maxBuffer: 1024 * 1024,
-    });
-    return stdout;
-  }
+  return await fs.readFile(filePath, 'utf-8');
 }
 
 function formatSize(bytes: number): string {
@@ -141,37 +118,17 @@ ${prompt}`;
     `--model ${model}`,
   ].join(' ');
 
-  const onVPS = isRunningOnVPS();
+  writeFileSync(tmpPromptFile, fullPrompt, { mode: 0o644 });
+  const command = `cd ${sandboxPath} && ${claudeCommand} < ${tmpPromptFile}`;
 
-  if (onVPS) {
-    writeFileSync(tmpPromptFile, fullPrompt, { mode: 0o644 });
-    const innerCommand = `cd ${sandboxPath} && ${claudeCommand} < ${tmpPromptFile}`;
-    const command = `script -q -c "sudo -u ridgetop bash -c '${innerCommand}'" /dev/null`;
-
-    try {
-      const { stdout } = await execAsync(command, {
-        timeout,
-        maxBuffer: 10 * 1024 * 1024,
-      });
-      return parseOutput(stdout.trim());
-    } finally {
-      try { unlinkSync(tmpPromptFile); } catch { /* ignore */ }
-    }
-  } else {
-    writeFileSync(tmpPromptFile, fullPrompt, { mode: 0o644 });
-    await execAsync(`scp ${tmpPromptFile} hetzner:${tmpPromptFile}`);
-    const command = `ssh hetzner 'sudo -u ridgetop bash -c "cd ${sandboxPath} && ${claudeCommand} < ${tmpPromptFile} ; rm -f ${tmpPromptFile}"'`;
-
-    try {
-      const { stdout } = await execAsync(command, {
-        timeout,
-        maxBuffer: 10 * 1024 * 1024,
-        env: { ...process.env, SSH_ASKPASS: '', GIT_ASKPASS: '' },
-      });
-      return parseOutput(stdout.trim());
-    } finally {
-      try { unlinkSync(tmpPromptFile); } catch { /* ignore */ }
-    }
+  try {
+    const { stdout } = await execAsync(command, {
+      timeout,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    return parseOutput(stdout.trim());
+  } finally {
+    try { unlinkSync(tmpPromptFile); } catch { /* ignore */ }
   }
 }
 
@@ -340,11 +297,7 @@ async function sandboxCleanup(args: SandboxCleanupArgs): Promise<string> {
   }
 
   try {
-    if (isRunningOnVPS()) {
-      await execAsync(`rm -rf "${sandboxPath}"`);
-    } else {
-      await execAsync(`ssh hetzner "rm -rf '${sandboxPath}'"`);
-    }
+    await execAsync(`rm -rf "${sandboxPath}"`);
     return `Sandbox cleaned up: ${sandboxPath}`;
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -359,7 +312,7 @@ export const tools: ToolSpec[] = [
     name: 'sandbox',
     description: `Create an ephemeral sandbox workspace and dispatch Claude Code to build something.
 
-The sandbox is a temporary directory on VPS where Claude Code can:
+The sandbox is a temporary local directory where Claude Code can:
 - Install packages and dependencies
 - Write scripts, tools, or applications
 - Generate output files (PDFs, CSVs, reports, images, etc.)

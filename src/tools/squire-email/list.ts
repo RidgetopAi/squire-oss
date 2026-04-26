@@ -36,7 +36,7 @@ async function squireEmailListToolHandler(args: { limit?: number }): Promise<str
 export const tools: ToolSpec[] = [
   {
     name: 'squire_email_list',
-    description: 'List emails in Squire\'s AgentMail inbox (squire@agentmail.to). Shows received messages with sender, subject, and preview.',
+    description: 'List emails in Squire\'s configured AgentMail inbox. Shows received messages with sender, subject, and preview.',
     parameters: {
       type: 'object',
       properties: {

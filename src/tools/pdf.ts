@@ -1,15 +1,19 @@
 import type { ToolHandler, ToolSpec } from './types.js';
 import { spawn } from 'child_process';
+import { resolve as resolvePath } from 'path';
 import { listSyncEnabledAccounts, getAuthenticatedClient } from '../services/google/auth.js';
 import { google } from 'googleapis';
 import { getObjectData } from '../services/storage/objects.js';
+
+const PDF_FORM_FILL_SCRIPT = process.env.PDF_FORM_FILL_SCRIPT
+  ?? resolvePath(process.cwd(), 'scripts', 'pdf_form_fill.py');
 
 /**
  * Call the Python PDF form fill script
  */
 async function callPdfScript(command: string, data: unknown): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    const python = spawn('python3', ['/opt/squire/scripts/pdf_form_fill.py', command]);
+    const python = spawn('python3', [PDF_FORM_FILL_SCRIPT, command]);
 
     let stdout = '';
     let stderr = '';

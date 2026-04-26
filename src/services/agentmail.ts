@@ -1,15 +1,17 @@
 /**
  * AgentMail Service
  *
- * Provides access to Squire's email inbox at squire@agentmail.to
+ * Provides access to a Squire-owned email inbox via AgentMail.
  * AgentMail is an API-first email platform designed for AI agents.
+ *
+ * Configure via env: AGENTMAIL_API_KEY, AGENTMAIL_INBOX_ID, AGENTMAIL_BASE_URL.
  */
 
 import fetch from 'node-fetch';
 import { config } from '../config/index.js';
 
-const BASE_URL = 'https://api.agentmail.to/v0';
-const INBOX_ID = 'squireagent@agentmail.to';
+const BASE_URL = config.agentmail.baseUrl;
+const INBOX_ID = config.agentmail.inboxId;
 
 export interface AgentMailAddress {
   email: string;
@@ -90,7 +92,7 @@ export const agentmail = {
   },
 
   /**
-   * Send an email from squire@agentmail.to
+   * Send an email from the configured Squire inbox
    */
   async sendMessage(to: string, subject: string, text: string, html?: string): Promise<AgentMailMessage> {
     console.log('[AgentMail] Sending message', { to, subject });

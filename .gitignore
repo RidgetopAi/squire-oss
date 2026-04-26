@@ -9,6 +9,27 @@ dist/
 .env.local
 .env.*.local
 
+# Secrets & credentials
+*.key
+*.pem
+credentials/
+service-account*.json
+tokens.json
+
+# Local persona (gitignored — your real persona stays on your machine)
+prompts/persona.local.md
+prompts/persona.*.local.md
+
+# Local databases
+*.sqlite
+*.db
+
+# Claude Code session state
+.claude/
+
+# Internal docs (move drafts/private docs here to keep them out of git)
+docs/internal/
+
 # IDE
 .idea/
 .vscode/
