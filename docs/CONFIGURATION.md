@@ -305,7 +305,8 @@ Email-based interaction through [AgentMail](https://agentmail.to).
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `AGENTMAIL_API_KEY` | When using AgentMail | — | AgentMail API key. |
-| `AGENTMAIL_INBOX_ID` | No | `squireagent@agentmail.to` | AgentMail inbox address. |
+| `AGENTMAIL_INBOX_ID` | When using AgentMail | — | AgentMail inbox address (e.g. `your-squire-inbox@agentmail.to`). |
+| `AGENTMAIL_BASE_URL` | No | `https://api.agentmail.to/v0` | AgentMail API base URL. |
 
 ---
 

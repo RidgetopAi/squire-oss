@@ -1,0 +1,196 @@
+title: |md
+  # Squire — Architecture
+  AI memory system that knows the user
+| { near: top-center }
+
+direction: down
+
+# ============================================================
+# SURFACES
+# ============================================================
+surfaces: Surfaces {
+  web: "Web\n(Next.js)"
+  cli: "CLI\nsrc/cli.ts"
+  telegram: Telegram User
+  email: "Email User\n(AgentMail)"
+  push: "Push / PWA"
+}
+
+# ============================================================
+# API
+# ============================================================
+api: "API Layer  —  src/api" {
+  server: "Express server\nserver.ts"
+  routes: "REST routes (25)\nchat · memories · notes · lists\ncalendar · documents · graph · …"
+  socket: "Socket.IO\nsocket/"
+  middleware: "Middleware\nhelmet · rate-limit · multer"
+}
+
+# ============================================================
+# AGENT CORE
+# ============================================================
+agent: Agent Core {
+  engine: "Agent Engine\nservices/agent/engine.ts"
+  routing: "Routing\nclassifier · router · models"
+  llm: "LLM service\ncall · stream · format"
+  tools: "Tools  (src/tools)\nmemory · notes · lists · calendar\nemail · search · pdf · browser …"
+}
+
+# ============================================================
+# SERVICES
+# ============================================================
+services: "Services  —  src/services" {
+  memory: "Memory & Knowledge" {
+    m1: "memory  (retrieval, lessons, prefs)"
+    m2: "knowledge  (beliefs, entities, edges,\ngraph, insights, memories, patterns)"
+    m3: "story  (engine, memoryGraph, cache)"
+    m4: consolidation
+    m5: reinforcement
+    m6: summaries
+    m7: continuity
+  }
+
+  chat: "Chat & Conversation" {
+    c1: "chat  (chat, context, conversations,\nenhancedRecall, chatExtraction)"
+    c2: "expression  (filter, evaluator)"
+    c3: identity
+    c4: sessions
+    c5: "analytics  (affect, salience, trends,\nemotionalSynthesis, stateSnapshots)"
+    c6: research
+  }
+
+  planning: "Planning & Action" {
+    p1: "planning  (commitments, goals, lists,\nreminders, recurrence, resolution)"
+    p2: scheduler
+    p3: jobs
+    p4: "courier  (notifier, scheduler, summarizer)"
+    p5: "daily-brief  (modules, emailer)"
+    p6: "steward  (health-checker, log-reader)"
+    p7: "page  (push to user)"
+  }
+
+  io: "I/O & Integrations" {
+    i1: "google  (auth, gmail, calendars, sync)"
+    i2: "telegram  (client, handler, poller)"
+    i3: agentmail
+    i4: "documents  (extractors: pdf, docx, csv,\nocr, text · chunker · factExtraction)"
+    i5: import
+    i6: tts
+    i7: push
+    i8: tool-logger
+    i9: "commune  (peer agent comms)"
+  }
+}
+
+# ============================================================
+# PROVIDERS & STORAGE
+# ============================================================
+storage: Providers & Storage {
+  providers_llm: "LLM provider\nproviders/llm.ts\n→ services/llm  (call, stream, format)"
+  providers_emb: "Embedding provider\nproviders/embeddings.ts\n(Ollama or OpenAI)"
+  pool: "DB pool\ndb/pool.ts · migrate.ts"
+  postgres: "PostgreSQL + pgvector\n(docker-compose)" { shape: cylinder }
+  schema: "schema/  —  48 migrations\nmemories · embeddings · entities · edges\nbeliefs · patterns · insights · sessions …"
+  dangerous_gate: "DANGEROUS TOOLS GATE\nSQUIRE_ENABLE_DANGEROUS_TOOLS=false (default)\nbash · claude_code · sandbox · browser_*\nNOT registered unless opted in"
+  storage_svc: "storage  (notes, objects, scratchpad)"
+}
+
+# ============================================================
+# EXTERNAL
+# ============================================================
+external: External {
+  ollama: "Ollama (local)\nnomic-embed-text · qwen2.5:3b" { shape: cloud }
+  anthropic: "Anthropic\nClaude Sonnet 4.6  (smart tier)" { shape: cloud }
+  xai: "xAI\nGrok-4-1-fast  (fast tier · reranker)" { shape: cloud }
+  groq_gemini: "Groq · Gemini\n(optional providers)" { shape: cloud }
+  google_api: "Google APIs\n(Gmail, Calendar)" { shape: cloud }
+  telegram_api: Telegram Bot API { shape: cloud }
+  agentmail_api: "AgentMail\n(optional)" { shape: cloud }
+  openai_api: "OpenAI\n(optional embeddings)" { shape: cloud }
+  webpush: "Web Push\n(VAPID)" { shape: cloud }
+}
+
+# ============================================================
+# CONNECTIONS
+# ============================================================
+
+# Surfaces -> API
+surfaces.web -> api.server
+surfaces.web -> api.socket: ws { style.stroke-dash: 4 }
+surfaces.cli -> api.server
+surfaces.telegram -> api.server: webhook
+surfaces.email -> api.server: poll
+surfaces.push -> api.server { style.stroke-dash: 4 }
+
+# API -> Agent
+api.routes -> agent.engine: dispatch
+api.socket -> agent.engine { style.stroke-dash: 4 }
+
+# Agent core internals
+agent.engine -> agent.routing
+agent.routing -> agent.llm
+agent.engine -> agent.tools: calls
+
+# Agent -> Services (one anchor each, dashed = "calls into")
+agent.engine -> services.memory: { style.stroke-dash: 4 }
+agent.engine -> services.chat: { style.stroke-dash: 4 }
+agent.engine -> services.planning: { style.stroke-dash: 4 }
+agent.tools -> services.io: { style.stroke-dash: 4 }
+
+# Services -> Storage
+services.memory -> storage.pool: query { style.stroke-dash: 4 }
+services.chat -> storage.pool { style.stroke-dash: 4 }
+services.planning -> storage.pool { style.stroke-dash: 4 }
+services.io -> storage.pool { style.stroke-dash: 4 }
+storage.storage_svc -> storage.pool { style.stroke-dash: 4 }
+storage.pool -> storage.postgres
+storage.schema -> storage.postgres: migrations { style.stroke-dash: 4 }
+
+# LLM path  (smart=Anthropic, fast=xAI, optional Groq/Gemini/Ollama)
+agent.llm -> storage.providers_llm
+storage.providers_llm -> external.anthropic: smart tier
+storage.providers_llm -> external.xai: "fast tier · reranker"
+storage.providers_llm -> external.groq_gemini { style.stroke-dash: 4 }
+storage.providers_llm -> external.ollama: "expression evaluator" { style.stroke-dash: 4 }
+
+# Embedding path  (Ollama default; OpenAI optional)
+services.memory -> storage.providers_emb: embed
+services.chat -> storage.providers_emb: embed { style.stroke-dash: 4 }
+services.io.i4 -> storage.providers_emb: "embed chunks" { style.stroke-dash: 4 }
+storage.providers_emb -> external.ollama: HTTP
+storage.providers_emb -> external.openai_api: "API\n(if EMBED_PROVIDER=openai)" { style.stroke-dash: 4 }
+
+# Services -> External
+services.io.i1 -> external.google_api: OAuth
+services.io.i2 -> external.telegram_api
+services.io.i3 -> external.agentmail_api
+services.planning.p4 -> external.webpush { style.stroke-dash: 4 }
+
+# ============================================================
+# STYLING
+# ============================================================
+classes: {
+  surface_style: { style: { fill: "#fff3bf"; stroke: "#1e1e1e" } }
+  api_style:     { style: { fill: "#d0ebff"; stroke: "#1e1e1e" } }
+  agent_style:   { style: { fill: "#ffd8a8"; stroke: "#1e1e1e" } }
+  service_style: { style: { fill: "#d3f9d8"; stroke: "#1e1e1e" } }
+  storage_style: { style: { fill: "#e5dbff"; stroke: "#1e1e1e" } }
+  external_style:{ style: { fill: "#ffe3e3"; stroke: "#1e1e1e" } }
+}
+
+surfaces.* .class: surface_style
+api.* .class: api_style
+agent.* .class: agent_style
+services.memory.* .class: service_style
+services.chat.* .class: service_style
+services.planning.* .class: service_style
+services.io.* .class: service_style
+storage.* .class: storage_style
+external.* .class: external_style
+
+# Highlight the dangerous tools gate in red — it's the most important
+# security control in the architecture.
+storage.dangerous_gate.style.fill: "#ffe3e3"
+storage.dangerous_gate.style.stroke: "#c92a2a"
+storage.dangerous_gate.style.stroke-width: 3
+agent.tools -> storage.dangerous_gate: "registers only if\nopt-in" { style.stroke: "#c92a2a"; style.stroke-dash: 4 }
