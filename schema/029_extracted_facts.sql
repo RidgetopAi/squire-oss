@@ -4,6 +4,18 @@
 -- Stores facts, entities, dates, and relationships extracted from document chunks.
 -- These are "pending" extractions that go through review before becoming memories.
 
+-- === SHARED TRIGGER FUNCTION ===
+-- Defines update_updated_at_column() if a previous deployment didn't already
+-- create it. Used by the BEFORE UPDATE triggers on the tables below to keep
+-- updated_at in sync. CREATE OR REPLACE is idempotent and safe to re-run.
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- === FACT STATUS ===
 -- pending: Newly extracted, awaiting review
 -- approved: Reviewed and approved, ready for memory creation
