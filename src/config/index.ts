@@ -34,10 +34,12 @@ export const config = {
     corsOrigin: optional('CORS_ORIGIN', 'http://localhost:3001'),
   },
   embedding: {
-    provider: optional('EMBED_PROVIDER', 'ollama') as 'ollama' | 'groq',
+    provider: optional('EMBED_PROVIDER', 'ollama') as 'ollama' | 'openai' | 'groq',
     dimension: parseInt(optional('EMBED_DIMENSION', '768'), 10),
     model: optional('EMBED_MODEL', 'nomic-embed-text'),
     ollamaUrl: optional('OLLAMA_URL', 'http://localhost:11434'),
+    openaiUrl: optional('OPENAI_URL', 'https://api.openai.com/v1'),
+    openaiApiKey: process.env['OPENAI_API_KEY'] ?? '',
   },
   llm: {
     provider: optional('LLM_PROVIDER', 'anthropic') as 'groq' | 'xai' | 'ollama' | 'gemini' | 'anthropic',
@@ -97,13 +99,13 @@ export const config = {
     },
   },
   goalWorker: {
-    enabled: optional('GOAL_WORKER_ENABLED', 'true') === 'true',
+    enabled: optional('GOAL_WORKER_ENABLED', 'false') === 'true',
     intervalMs: parseInt(optional('GOAL_WORKER_INTERVAL_MS', '3600000'), 10), // 1 hour
     maxTurns: parseInt(optional('GOAL_WORKER_MAX_TURNS', '15'), 10),
     maxExecutionMs: parseInt(optional('GOAL_WORKER_MAX_EXECUTION_MS', '300000'), 10), // 5 min
   },
   courier: {
-    enabled: optional('COURIER_ENABLED', 'true') === 'true',
+    enabled: optional('COURIER_ENABLED', 'false') === 'true',
     intervalMs: parseInt(optional('COURIER_INTERVAL_MS', '1800000'), 10), // 30 min
     quietHoursStart: parseInt(optional('COURIER_QUIET_START', '22'), 10), // 10pm
     quietHoursEnd: parseInt(optional('COURIER_QUIET_END', '7'), 10), // 7am
@@ -111,13 +113,13 @@ export const config = {
     retryDelayMs: parseInt(optional('COURIER_RETRY_DELAY_MS', '15000'), 10), // 15 sec
   },
   expressionEvaluator: {
-    enabled: optional('EXPRESSION_EVALUATOR_ENABLED', 'true') === 'true',
+    enabled: optional('EXPRESSION_EVALUATOR_ENABLED', 'false') === 'true',
     provider: optional('EXPRESSION_EVALUATOR_PROVIDER', 'ollama') as 'ollama' | 'groq' | 'xai' | 'gemini' | 'anthropic',
     model: optional('EXPRESSION_EVALUATOR_MODEL', 'qwen2.5:3b'),
     batchSize: parseInt(optional('EXPRESSION_EVALUATOR_BATCH_SIZE', '10'), 10),
   },
   commune: {
-    enabled: optional('COMMUNE_ENABLED', 'true') === 'true',
+    enabled: optional('COMMUNE_ENABLED', 'false') === 'true',
     intervalMs: parseInt(optional('COMMUNE_INTERVAL_MS', '900000'), 10), // 15 min default
     quietHoursStart: parseInt(optional('COMMUNE_QUIET_START', '22'), 10), // 10pm
     quietHoursEnd: parseInt(optional('COMMUNE_QUIET_END', '7'), 10), // 7am
@@ -133,7 +135,7 @@ export const config = {
   recall: {
     userStopwords: (process.env['RECALL_USER_STOPWORDS'] ?? '').split(',').filter(Boolean),
     cacheTtlMs: parseInt(optional('RECALL_CACHE_TTL_MS', '300000'), 10),
-    rerankerEnabled: optional('RECALL_RERANKER_ENABLED', 'true') === 'true',
+    rerankerEnabled: optional('RECALL_RERANKER_ENABLED', 'false') === 'true',
     rerankerProvider: optional('RECALL_RERANKER_PROVIDER', 'xai') as 'xai' | 'anthropic',
     rerankerModel: optional('RECALL_RERANKER_MODEL', 'grok-4-1-fast-reasoning'),
     maxRerankerCandidates: parseInt(optional('RECALL_RERANKER_POOL', '15'), 10),

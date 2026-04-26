@@ -16,5 +16,43 @@ services:
       timeout: 5s
       retries: 5
 
+  # API server — uncomment to run in Docker
+  # api:
+  #   build: .
+  #   container_name: squire-api
+  #   ports:
+  #     - "3000:3000"
+  #   env_file: .env
+  #   environment:
+  #     DATABASE_URL: postgresql://squire:squire_dev@postgres:5432/squire
+  #     OLLAMA_URL: http://ollama:11434
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+  # Web frontend — uncomment to run in Docker
+  # web:
+  #   build: web/
+  #   container_name: squire-web
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     NEXT_PUBLIC_API_URL: http://api:3000
+  #   depends_on:
+  #     - api
+  #   restart: unless-stopped
+
+  # Local embedding/LLM provider — uncomment if using Ollama
+  # ollama:
+  #   image: ollama/ollama
+  #   container_name: squire-ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   restart: unless-stopped
+
 volumes:
   squire_data:
+  # ollama_data:

@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 import { readFileSync } from 'fs';
+import { runSetup } from './cli/setup.js';
 import { createMemory, listMemories, countMemories, searchMemories, getMemory } from './services/knowledge/memories.js';
 import { generateContext, listProfiles } from './services/chat/context.js';
 import {
@@ -2704,6 +2705,21 @@ program
       process.exit(1);
     } finally {
       await closePool();
+    }
+  });
+
+/**
+ * setup - Interactive first-run onboarding (config, DB, embeddings, identity, seed memories).
+ */
+program
+  .command('setup')
+  .description('Interactive first-run setup: write .env, start DB, run migrations, seed identity')
+  .action(async () => {
+    try {
+      await runSetup();
+    } catch (error) {
+      console.error('\nSetup failed:', error);
+      process.exit(1);
     }
   });
 
