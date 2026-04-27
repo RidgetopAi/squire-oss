@@ -50,17 +50,17 @@ step() {
 
 pass() {
   echo -e "  ${GREEN}PASS${NC}: $1"
-  ((PASS++))
+  PASS=$((PASS + 1))
 }
 
 fail() {
   echo -e "  ${RED}FAIL${NC}: $1"
-  ((FAIL++))
+  FAIL=$((FAIL + 1))
 }
 
 warn() {
   echo -e "  ${YELLOW}WARN${NC}: $1"
-  ((WARN++))
+  WARN=$((WARN + 1))
 }
 
 cleanup() {
@@ -102,10 +102,13 @@ wait_for_port() {
   local port=$1
   local label=$2
   local max_wait=${3:-30}
+  local probe_path=${4:-/api/health}
   local elapsed=0
-  while ! curl -sf "http://localhost:$port" >/dev/null 2>&1; do
+  # Accept any HTTP response (including 4xx/5xx) — we just want to know the
+  # server is listening. -sf would treat 404 on / as failure even when up.
+  while ! curl -s -o /dev/null -w '%{http_code}' "http://localhost:$port$probe_path" 2>/dev/null | grep -qE '^[1-5][0-9][0-9]$'; do
     sleep 1
-    ((elapsed++))
+    elapsed=$((elapsed + 1))
     if [[ $elapsed -ge $max_wait ]]; then
       fail "$label did not become available on port $port within ${max_wait}s"
       return 1
@@ -352,11 +355,22 @@ for i in $(seq 1 30); do
   sleep 1
 done
 
-# Verify pgvector extension is available
-if docker exec "$DB_CONTAINER" psql -U squire -d squire -c "CREATE EXTENSION IF NOT EXISTS vector;" >/dev/null 2>&1; then
-  pass "pgvector extension available"
-else
+# Verify pgvector extension is available.
+# Retry briefly: pg_isready can return ready before the role-auth path is
+# fully wired, especially on the first connection of a fresh container.
+ext_err=""
+for i in $(seq 1 10); do
+  ext_err=$(docker exec "$DB_CONTAINER" psql -U squire -d squire -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1)
+  if [[ $? -eq 0 ]]; then
+    pass "pgvector extension available"
+    ext_err=""
+    break
+  fi
+  sleep 1
+done
+if [[ -n "$ext_err" ]]; then
   fail "pgvector extension not available"
+  echo "  Last error: $ext_err"
   exit 1
 fi
 
@@ -549,7 +563,7 @@ fi
 step "13. Semantic search (verify it finds the right memory)"
 
 if [[ -n "$memory_id" ]]; then
-  search_response=$(curl -sf "http://localhost:$TEST_PORT/api/memories/search?q=product+roadmap+mobile&limit=5" 2>&1 || echo "FAILED")
+  search_response=$(curl -sf "http://localhost:$TEST_PORT/api/memories/search?query=product+roadmap+mobile&limit=5" 2>&1 || echo "FAILED")
 
   if echo "$search_response" | grep -q "$memory_id"; then
     pass "Semantic search returned the exact memory by ID"
@@ -562,7 +576,7 @@ if [[ -n "$memory_id" ]]; then
   fi
 
   # Negative test: search for something completely unrelated
-  unrelated_response=$(curl -sf "http://localhost:$TEST_PORT/api/memories/search?q=quantum+physics+black+holes&limit=5" 2>&1 || echo "FAILED")
+  unrelated_response=$(curl -sf "http://localhost:$TEST_PORT/api/memories/search?query=quantum+physics+black+holes&limit=5" 2>&1 || echo "FAILED")
   unrelated_count=$(echo "$unrelated_response" | grep -c '"id"' || true)
 
   if [[ "$unrelated_count" -eq 0 ]]; then
@@ -639,8 +653,19 @@ else
 fi
 
 # ─── Step 15: CLI deep tests ────────────────────────────────────────
+# SKIPPED 2026-04-26: this block predates Phase 4's CLI reshape.
+# - References commands that no longer exist (`health`, `count`)
+# - Each `npx tsx src/cli.ts ...` cold-boots the app + makes LLM calls;
+#   8 calls in series is too slow for a smoke test and risks shell-timeout
+#   killing the script before cleanup runs (which is what happened the
+#   first time — orphaned container + temp dir).
+# Set RUN_STEP_15=1 to re-enable while iterating on a rewrite.
 
 step "15. CLI deep tests"
+
+if [[ "${RUN_STEP_15:-0}" != "1" ]]; then
+  warn "Step 15 skipped (set RUN_STEP_15=1 to enable; needs rewrite for current CLI)"
+else
 
 # Health check via CLI
 cli_health=$(npx tsx src/cli.ts health 2>&1 || echo "CLI_FAILED")
@@ -722,6 +747,8 @@ if [[ "$cli_summaries" != "CLI_FAILED" ]]; then
 else
   warn "CLI: squire summaries failed"
 fi
+
+fi  # end RUN_STEP_15 gate
 
 # ─── Step 16: Database state summary ─────────────────────────────────
 
@@ -818,7 +845,7 @@ for var in $config_vars; do
       BLOCKED_COMMANDS) continue ;;
     esac
     warn ".env.example missing: $var"
-    ((missing_from_example++))
+    missing_from_example=$((missing_from_example + 1))
   fi
 done
 
