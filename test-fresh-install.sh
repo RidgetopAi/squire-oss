@@ -358,17 +358,24 @@ done
 # Verify pgvector extension is available.
 # Retry briefly: pg_isready can return ready before the role-auth path is
 # fully wired, especially on the first connection of a fresh container.
+# Under `set -e`, a failing command substitution inside an assignment exits
+# the script — so we run docker exec directly and capture its output via a
+# tempfile to keep both the exit code and the error message.
+ext_ok=0
 ext_err=""
+ext_log=$(mktemp)
 for i in $(seq 1 10); do
-  ext_err=$(docker exec "$DB_CONTAINER" psql -U squire -d squire -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1)
-  if [[ $? -eq 0 ]]; then
+  if docker exec "$DB_CONTAINER" psql -U squire -d squire \
+      -c "CREATE EXTENSION IF NOT EXISTS vector;" >"$ext_log" 2>&1; then
     pass "pgvector extension available"
-    ext_err=""
+    ext_ok=1
     break
   fi
   sleep 1
 done
-if [[ -n "$ext_err" ]]; then
+ext_err=$(cat "$ext_log")
+rm -f "$ext_log"
+if [[ $ext_ok -eq 0 ]]; then
   fail "pgvector extension not available"
   echo "  Last error: $ext_err"
   exit 1
